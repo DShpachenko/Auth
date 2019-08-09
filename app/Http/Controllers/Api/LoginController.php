@@ -2,17 +2,24 @@
 
 namespace App\Http\Controllers\Api;
 
+use App\Http\Requests\LoginRequest;
 use App\Http\Controllers\Controller;
 
+/**
+ * Авторизация пользователя.
+ *
+ * Class LoginController
+ * @package App\Http\Controllers\Api
+ */
 class LoginController extends Controller
 {
-    public function index()
+    /**
+     * Метод авторизации.
+     *
+     * @param LoginRequest $request
+     */
+    public function login(LoginRequest $request)
     {
-        echo '321';
-    }
-
-    public function login()
-    {
-        echo '123';
+        dd($request);
     }
 }

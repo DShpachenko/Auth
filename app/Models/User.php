@@ -71,7 +71,9 @@ class User extends Model
      * Список сообщеинй правил валидации.
      */
     public const RULES_MESSAGES = [
-        'email.unique' => 'Пользователь с подобным `Email` уже существует!',
+        'email.unique' => 'Пользователь с подобным Email-адресом уже существует!',
+        'phone.unique' => 'Пользователь с подобным Номером уже существует!',
+        'name.unique' => 'Пользователь с подобным Ником уже существует!',
         'required' => 'Отсутствует значение поля!',
         'integer' => 'Поле должно быть строго числовым!',
         'string' => 'Не верный формат поля!',
@@ -110,6 +112,6 @@ class User extends Model
 
     public function add()
     {
-        
+
     }
 }

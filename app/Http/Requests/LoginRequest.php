@@ -6,6 +6,12 @@ use App\Models\User;
 use Illuminate\Validation\Rule;
 use Illuminate\Foundation\Http\FormRequest;
 
+/**
+ * Валидация входящего запроса для авторизации.
+ *
+ * Class LoginRequest
+ * @package App\Http\Requests
+ */
 class LoginRequest extends FormRequest
 {
     /**
@@ -26,6 +32,8 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         $rules = User::RULES;
+        $rules['name'] .= Rule::unique('users')->ignore($this->user);
+        $rules['phone'] .= Rule::unique('users')->ignore($this->user);
         $rules['email'] .= Rule::unique('users')->ignore($this->user);
         $rules['password'] .= $this->route()->user ? 'nullable' : 'required';
 
