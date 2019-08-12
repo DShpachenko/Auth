@@ -95,6 +95,8 @@ if (env('APP_ENV') !== 'production') {
 |
 */
 
+$app->configure('database');
+
 $app->router->group([
     'namespace' => 'App\Http\Controllers',
 ], function ($router) {
