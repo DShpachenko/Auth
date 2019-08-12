@@ -1,6 +1,9 @@
 <?php
 
 return [
+
+    'default' => env('DB_CONNECTION', 'mysql'),
+
     'connections' => [
         'pgsql' => [
             'driver' => 'pgsql',
