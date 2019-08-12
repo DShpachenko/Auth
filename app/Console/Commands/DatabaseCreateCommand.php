@@ -30,9 +30,21 @@ class DatabaseCreateCommand extends Command
     protected $signature = 'db:create';
 
     /**
-     * Execute the console command.
+     * Create a new command instance.
+     *
+     * @return void
      */
-    public function fire()
+    public function __construct()
+    {
+        parent::__construct();
+    }
+
+    /**
+     * Execute the console command.
+     *
+     * @return mixed
+     */
+    public function handle()
     {
         $database = env('DB_DATABASE', false);
 
@@ -55,6 +67,8 @@ class DatabaseCreateCommand extends Command
         } catch (PDOException $exception) {
             $this->error(sprintf('Failed to create %s database, %s', $database, $exception->getMessage()));
         }
+
+        return;
     }
 
     /**
@@ -66,6 +80,6 @@ class DatabaseCreateCommand extends Command
      */
     private function getPDOConnection($host, $port, $username, $password)
     {
-        return new PDO(sprintf('mysql:host=%s;port=%d;', $host, $port), $username, $password);
+        return new PDO(sprintf(''.env('DB_CONNECTION').':host=%s;port=%d;', $host, $port), $username, $password);
     }
 }
