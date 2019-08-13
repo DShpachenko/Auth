@@ -49,17 +49,4 @@ class Controller extends BaseController
             'errors' => $errors,
         ])->content();
     }
-
-    /**
-     * Ответ сервера при критической ошибке.
-     *
-     * @return string
-     */
-    public function criticalResponse(): string
-    {
-        return response()->json([
-            'data' => null,
-            'errors' => [__('response.error_critical')],
-        ])->content();
-    }
 }

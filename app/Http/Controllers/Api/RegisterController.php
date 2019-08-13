@@ -45,7 +45,7 @@ class RegisterController extends Controller
             /** @todo Добавить логирование при не критической ошибке */
         }
 
-        return $this->criticalResponse();
+        return $this->response(null, [__('response.error_critical')]);
     }
 
     /**
@@ -86,7 +86,7 @@ class RegisterController extends Controller
             /** @todo Добавить логирование при не критической ошибке */
         }
 
-        return $this->criticalResponse();
+        return $this->response(null, [__('response.error_critical')]);
     }
 
     /**
@@ -125,6 +125,6 @@ class RegisterController extends Controller
             /** @todo Добавить логирование при не критической ошибке */
         }
 
-        return $this->criticalResponse();
+        return $this->response(null, [__('response.error_critical')]);
     }
 }
