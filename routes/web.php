@@ -19,12 +19,18 @@ $router->get('/', function () use ($router) {
 $router->group(['namespace' => 'Api', 'prefix' => 'api'], function ($router) {
     /** @var \Laravel\Lumen\Routing\Router $router */
 
-    $router->get('login', ['as' => 'login', 'uses' => 'LoginController@login']);
+    $router->get('registration',                 'RegisterController@registration');
 
-    $router->get('token/refresh', ['as' => 'login', 'uses' => 'LoginController@login']);
+    $router->post('registration/confirm',         'RegisterController@confirmation');
 
-    $router->get('registrations', ['as' => 'login', 'uses' => 'LoginController@login']);
+    $router->post('registration/resending-sms',   'RegisterController@resendingSms');
 
-    $router->get('sms/resend', ['as' => 'login', 'uses' => 'LoginController@login']);
+    $router->post('login',                        'LoginController@login');
+
+    $router->post('forgot',                       'ForgotController@forgot');
+
+    $router->post('forgot/confirm',               'ForgotController@confirmation');
+
+    $router->post('forgot/resending-sms',         'ForgotController@resendingSms');
 
 });
