@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Registration;
 
+use App\Models\User;
 use App\Models\UserLogin;
 use App\Http\Requests\Validation;
 
@@ -21,10 +22,16 @@ class RegistrationRequest extends Validation
      */
     public function make($request)
     {
+        $data = $request->all();
+
+        if (isset($data['phone'])) {
+            $data['phone'] = User::clearPhoneNumber($data['phone']);
+        }
+
         $this->setRules([
-            'name' => 'required|string|max:255|regex:/(^([a-zA-Z]+)(\d+)?$)/u|unique:users',
-            'phone' => 'required|string|max:30|unique:users',
-            'password' => 'required|string|min:6',
+            'name' => 'required|string|max:50|regex:/(^([a-zA-Z]+)(\d+)?$)/u|unique:users',
+            'phone' => 'required|max:30|unique:users',
+            'password' => 'required|string|min:6|max:50',
         ]);
 
         $this->setMessages([
@@ -36,7 +43,7 @@ class RegistrationRequest extends Validation
             'password.required' => __('response.password_required'),
         ]);
 
-        $this->validateForm($request->all());
+        $this->validateForm($data);
         $this->validateIp($request->ip(),UserLogin::TYPE_REGISTRATION);
 
         return $this->fails();

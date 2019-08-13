@@ -21,7 +21,7 @@ class ResendSmsRequest extends Validation
      */
     public function make($request)
     {
-        $this->setRules(['phone' => 'required|string|max:30']);
+        $this->setRules(['phone' => 'required|max:30']);
 
         $this->setMessages([
             'phone.required' => __('response.phone_required'),

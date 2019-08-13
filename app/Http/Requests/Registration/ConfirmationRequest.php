@@ -22,8 +22,8 @@ class ConfirmationRequest extends Validation
     public function make($request)
     {
         $this->setRules([
-            'phone' => 'required|string|max:30',
-            'code' => 'required|string|min:4',
+            'phone' => 'required|max:30',
+            'code' => 'required|min:4|max:10',
         ]);
 
         $this->setMessages([
