@@ -26,7 +26,7 @@ class RegisterController extends Controller
         try {
             $validator = new RegistrationRequest();
 
-            if ($validator->make($request->all())) {
+            if (!$validator->make($request)) {
                 return $this->response(null, $validator->getErrors());
             }
 
@@ -38,8 +38,10 @@ class RegisterController extends Controller
 
             return $this->response(['status' => self::REGISTRATION_SUCCESS]);
         } catch (\Exception $e) {
+            dd($e);
             /** @todo Добавить логирование при не обработанном исключении */
         } catch (\Throwable $t) {
+            dd($t);
             /** @todo Добавить логирование при не критической ошибке */
         }
 
@@ -57,7 +59,7 @@ class RegisterController extends Controller
         try {
             $validator = new ConfirmationRequest();
 
-            if ($validator->make($request->all())) {
+            if (!$validator->make($request)) {
                 return $this->response(null, $validator->getErrors());
             }
 
@@ -77,8 +79,10 @@ class RegisterController extends Controller
 
             return $this->response(['status' => self::CONFIRMATION_SUCCESS]);
         } catch (\Exception $e) {
+            dd($e);
             /** @todo Добавить логирование при не обработанном исключении */
         } catch (\Throwable $t) {
+            dd($t);
             /** @todo Добавить логирование при не критической ошибке */
         }
 
@@ -96,7 +100,7 @@ class RegisterController extends Controller
         try {
             $validator = new ResendSmsRequest();
 
-            if ($validator->make($request->all())) {
+            if (!$validator->make($request)) {
                 return $this->response(null, $validator->getErrors());
             }
 
@@ -114,8 +118,10 @@ class RegisterController extends Controller
 
             return $this->response(['status' => self::RESEND_SMS_SUCCESS]);
         } catch (\Exception $e) {
+            dd($e);
             /** @todo Добавить логирование при не обработанном исключении */
         } catch (\Throwable $t) {
+            dd($t);
             /** @todo Добавить логирование при не критической ошибке */
         }
 

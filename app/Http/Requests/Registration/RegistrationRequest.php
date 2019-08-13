@@ -16,14 +16,14 @@ class RegistrationRequest extends Validation
     /**
      * Метод валидации регистрационных данных.
      *
-     * @param $data
+     * @param \Illuminate\Http\Request $request
      * @return bool
      */
-    public function make($data)
+    public function make($request)
     {
         $this->setRules([
-            'name' => 'required|string|max:255|regex: [A-Za-z0-9 ]|unique:users',
-            'phone' => 'required|string|phone|max:30|unique:users',
+            'name' => 'required|string|max:255|regex:/(^([a-zA-Z]+)(\d+)?$)/u|unique:users',
+            'phone' => 'required|string|max:30|unique:users',
             'password' => 'required|string|min:6',
         ]);
 
@@ -36,8 +36,8 @@ class RegistrationRequest extends Validation
             'password.required' => __('response.password_required'),
         ]);
 
-        $this->validateForm($data);
-        $this->validateIp(UserLogin::TYPE_REGISTRATION);
+        $this->validateForm($request->all());
+        $this->validateIp($request->ip(),UserLogin::TYPE_REGISTRATION);
 
         return $this->fails();
     }

@@ -16,12 +16,12 @@ class ResendSmsRequest extends Validation
     /**
      * Валидация метода повторной отправки sms сообщения.
      *
-     * @param $data
+     * @param \Illuminate\Http\Request $request
      * @return bool
      */
-    public function make($data)
+    public function make($request)
     {
-        $this->setRules(['phone' => 'required|string|phone|max:30']);
+        $this->setRules(['phone' => 'required|string|max:30']);
 
         $this->setMessages([
             'phone.required' => __('response.phone_required'),
@@ -31,9 +31,9 @@ class ResendSmsRequest extends Validation
             'min' => __('response.min'),
         ]);
 
-        $this->validateForm($data);
-        $this->validateIp(UserLogin::TYPE_RESENDING_SMS);
-        $this->validateUserByPhone($data['phone'], User::STATUS_NEW);
+        $this->validateForm($request->all());
+        $this->validateIp($request->ip(), UserLogin::TYPE_RESENDING_SMS);
+        $this->validateUserByPhone($request->get('phone'), User::STATUS_NEW);
 
         return $this->fails();
     }

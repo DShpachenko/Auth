@@ -19,7 +19,7 @@ $router->get('/', function () use ($router) {
 $router->group(['namespace' => 'Api', 'prefix' => 'api'], function ($router) {
     /** @var \Laravel\Lumen\Routing\Router $router */
 
-    $router->get('registration',                 'RegisterController@registration');
+    $router->post('registration',                 'RegisterController@registration');
 
     $router->post('registration/confirm',         'RegisterController@confirmation');
 

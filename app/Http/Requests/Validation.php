@@ -111,13 +111,14 @@ class Validation extends Request
     /**
      * Проверка на превышение количества запросов определенного действия.
      *
+     * @param $ip
      * @param $type
      * @return void
      */
-    protected function validateIp($type): void
+    protected function validateIp($ip, $type): void
     {
-        if (!UserLogin::checkIpAccess($this->ip(), $type)) {
-            $this->anyErrors[] = [__('response.error_number_requests_exceeded')];
+        if (!UserLogin::checkIpAccess($ip, $type)) {
+            $this->anyErrors[] = __('response.error_number_requests_exceeded');
         }
     }
 
@@ -133,7 +134,7 @@ class Validation extends Request
         $user = User::findByPhone($phone);
 
         if (!$user || ($user && $status !== 'empty' && $user->status !== $status)) {
-            $this->anyErrors[] = [__('response.user_not_found')];
+            $this->anyErrors[] = __('response.user_not_found');
         } else {
             $this->user = $user;
         }
@@ -150,7 +151,7 @@ class Validation extends Request
         $validator = Validator::make($object, $this->rules, $this->ruleMessages);
 
         if ($validator->fails()) {
-            $this->formErrors[] = $validator->errors()->toArray();
+            $this->formErrors = $validator->errors()->toArray();
         }
     }
 

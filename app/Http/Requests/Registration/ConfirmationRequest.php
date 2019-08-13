@@ -16,13 +16,13 @@ class ConfirmationRequest extends Validation
     /**
      * Валидация метода подтверждения регистрации.
      *
-     * @param $data
+     * @param \Illuminate\Http\Request $request
      * @return bool
      */
-    public function make($data)
+    public function make($request)
     {
         $this->setRules([
-            'phone' => 'required|string|phone|max:30',
+            'phone' => 'required|string|max:30',
             'code' => 'required|string|min:4',
         ]);
 
@@ -35,8 +35,8 @@ class ConfirmationRequest extends Validation
             'code.required' => __('response.code_required'),
         ]);
 
-        $this->validateForm($data);
-        $this->validateUserByPhone($data['phone'], User::STATUS_NEW);
+        $this->validateForm($request->all());
+        $this->validateUserByPhone($request->get('phone'), User::STATUS_NEW);
 
         return $this->fails();
     }

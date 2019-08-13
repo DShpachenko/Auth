@@ -40,26 +40,26 @@ class Controller extends BaseController
      *
      * @param null $data
      * @param array $errors
-     * @return \Illuminate\Http\JsonResponse
+     * @return string
      */
-    public function response($data = null, $errors = self::DEFAULT_ERRORS): \Illuminate\Http\JsonResponse
+    public function response($data = null, $errors = self::DEFAULT_ERRORS): string
     {
         return response()->json([
             'data' => $data,
             'errors' => $errors,
-        ]);
+        ])->content();
     }
 
     /**
      * Ответ сервера при критической ошибке.
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return string
      */
-    public function criticalResponse()
+    public function criticalResponse(): string
     {
         return response()->json([
             'data' => null,
             'errors' => [__('response.error_critical')],
-        ]);
+        ])->content();
     }
 }
