@@ -63,6 +63,30 @@ class Validation extends Request
     }
 
     /**
+     * Получение массива ошибок с указанным сообщением.
+     *
+     * @param $message
+     * @return array
+     */
+    public function getErrorsByMessage($message): array
+    {
+        return [
+            'any' => [$message],
+            'form' => null,
+        ];
+    }
+
+    /**
+     * Получение найденного пользователя.
+     *
+     * @return User|null
+     */
+    public function getUser(): ? User
+    {
+        return $this->user;
+    }
+
+    /**
      * Список правил валидации API ключа.
      *
      * @param $rules
@@ -110,6 +134,8 @@ class Validation extends Request
 
         if (!$user || ($user && $status !== 'empty' && $user->status !== $status)) {
             $this->anyErrors[] = [__('response.user_not_found')];
+        } else {
+            $this->user = $user;
         }
     }
 

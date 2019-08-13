@@ -2,12 +2,10 @@
 
 namespace App\Http\Controllers\Api;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\ {User, UserLogin, UserInfo};
-use App\Models\ {Sms, SmsCode};
-use App\Http\Requests\Registration\RegistrationRequest;
-use App\Http\Requests\Registration\ConfirmationRequest;
+use App\Http\Controllers\Controller;
+use App\Models\{User, Sms, SmsCode};
+use App\Http\Requests\Registration\{RegistrationRequest, ConfirmationRequest, ResendSmsRequest};
 
 /**
  * Регистрация, подтверждение регистрации, повторная отправка смс для верификации
@@ -18,109 +16,109 @@ use App\Http\Requests\Registration\ConfirmationRequest;
 class RegisterController extends Controller
 {
     /**
-     * Регистрация пользователя
+     * Регистрация пользователя.
      *
      * @param Request $request
      * @return string
      */
     public function registration(Request $request): string
     {
-        $validator = new RegistrationRequest();
+        try {
+            $validator = new RegistrationRequest();
 
-        if ($validator->make($request->all())) {
-            return $this->response(null, $validator->getErrors());
+            if ($validator->make($request->all())) {
+                return $this->response(null, $validator->getErrors());
+            }
+
+            $user = User::registerUser($request);
+            $code = SmsCode::addCode($user->id);
+
+            Sms::addSms($user->id, Sms::TYPE_REGISTRATION, $code->code);
+            /** @todo Добавить отправку SMS сообщения при успешной регистрации пользователя через RebbitMq */
+
+            return $this->response(['status' => self::REGISTRATION_SUCCESS]);
+        } catch (\Exception $e) {
+            /** @todo Добавить логирование при не обработанном исключении */
+        } catch (\Throwable $t) {
+            /** @todo Добавить логирование при не критической ошибке */
         }
 
-        $user = User::registerUser($request);
-        $code = SmsCode::addCode($user->id);
-
-        Sms::addSms($user->id, Sms::TYPE_REGISTRATION, $code->code);
-
-        return $this->response(['status' => self::REGISTRATION_SUCCESS]);
+        return $this->criticalResponse();
     }
 
     /**
-     * Подтверждение регистрации
+     * Подтверждение регистрации.
      *
      * @param Request $request
      * @return string
      */
     public function confirmation(Request $request): string
     {
-        $user = User::findByPhone($request->get('phone'));
+        try {
+            $validator = new ConfirmationRequest();
 
-        if (!$user || $user->status !== User::STATUS_NEW) {
-            return $this->response([
-                'errors' => [
-                    'message' => 'Пользователь не найден или не находится на стадии верификации'
-                ]
-            ]);
+            if ($validator->make($request->all())) {
+                return $this->response(null, $validator->getErrors());
+            }
+
+            $user = $validator->getUser();
+
+            if (!Sms::checkRepairSms($user->id, Sms::TYPE_REGISTRATION)) {
+                return $this->response(null, $validator->getErrorsByMessage(__('response.error_failed_sms_code')));
+            }
+
+            if (!SmsCode::checkCode($user->id, $request->get('code'))) {
+                return $this->response(null, $validator->getErrorsByMessage(__('response.error_failed_sms_code')));
+            }
+
+            $user->confirmRegistration();
+            /** @todo Добавить обработку с rabbitMq на создание новой информации о пользователе */
+            //UserInfo::findByUser($user->id);
+
+            return $this->response(['status' => self::CONFIRMATION_SUCCESS]);
+        } catch (\Exception $e) {
+            /** @todo Добавить логирование при не обработанном исключении */
+        } catch (\Throwable $t) {
+            /** @todo Добавить логирование при не критической ошибке */
         }
 
-        if (!Sms::checkRepairSms($user->id, Sms::TYPE_REGISTRATION)) {
-            return $this->response([
-                'errors' => [
-                    'message' => 'Не верный код (возможно уже не актуальный) или сообщение не отправлено'
-                ]
-            ]);
-        }
-
-        if (!SmsCode::checkCode($user->id, $request->get('code'))) {
-            return $this->response([
-                'errors' => [
-                    'message' => 'Не верный код (возможно уже не актуальный) или сообщение не отправлено'
-                ]
-            ]);
-        }
-
-        $user->confirmRegistration();
-        UserInfo::findByUser($user->id);
-
-        return $this->response(['status' => self::STATUS_SUCCESS]);
+        return $this->criticalResponse();
     }
 
     /**
-     * Повторная отправка смс для подтверждения регистрации
+     * Повторная отправка смс для подтверждения регистрации.
      *
      * @param Request $request
      * @return string
      */
     public function resendingSms(Request $request): string
     {
-        $user = User::findByPhone($request->get('phone'));
-        $lastCode = SmsCode::getLastByUser($user->id);
+        try {
+            $validator = new ResendSmsRequest();
 
-        if ((time() - $lastCode->created_at) < SmsCode::SECONDS_BEFORE_NEXT) {
-            return $this->response([
-                'status' => self::STATUS_FAILED,
-                'errors' => [
-                    'message' => 'Подождите 1 минуту после отправки предыдущего сообщения'
-                ]
-            ]);
+            if ($validator->make($request->all())) {
+                return $this->response(null, $validator->getErrors());
+            }
+
+            $user = $validator->getUser();
+            $lastCode = SmsCode::getLastByUser($user->id);
+
+            if ((time() - $lastCode->created_at) < SmsCode::SECONDS_BEFORE_NEXT) {
+                return $this->response(null, $validator->getErrorsByMessage(__('response.wait_1_minute')));
+            }
+
+            $code = SmsCode::addCode($user->id);
+
+            /** @todo Добавить отправку SMS сообщения при успешной регистрации пользователя через RebbitMq */
+            Sms::addSms($user->id, Sms::TYPE_REGISTRATION, $code->code);
+
+            return $this->response(['status' => self::RESEND_SMS_SUCCESS]);
+        } catch (\Exception $e) {
+            /** @todo Добавить логирование при не обработанном исключении */
+        } catch (\Throwable $t) {
+            /** @todo Добавить логирование при не критической ошибке */
         }
 
-        if (!UserLogin::checkIpAccess($request->ip(), UserLogin::TYPE_RESENDING_SMS)) {
-            return $this->response([
-                'status' => self::STATUS_FAILED,
-                'errors' => [
-                    'message' => 'Превышено число попыток, попробуйте снова через 5 минут'
-                ]
-            ]);
-        }
-
-        if (!$user || $user->status !== User::STATUS_NEW) {
-            return $this->response([
-                'status' => self::STATUS_FAILED,
-                'errors' => [
-                    'message' => 'Пользователь не найден или не находится на стадии верификации'
-                ]
-            ]);
-        }
-
-        $code = SmsCode::addCode($user->id);
-
-        Sms::addSms($user->id, Sms::TYPE_REGISTRATION, $code->code);
-
-        return $this->response(['status' => self::STATUS_SUCCESS]);
+        return $this->criticalResponse();
     }
 }

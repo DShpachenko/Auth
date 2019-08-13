@@ -4,6 +4,12 @@ namespace App\Http\Controllers;
 
 use Laravel\Lumen\Routing\Controller as BaseController;
 
+/**
+ * Базовый контроллер.
+ *
+ * Class Controller
+ * @package App\Http\Controllers
+ */
 class Controller extends BaseController
 {
     /**
@@ -15,6 +21,11 @@ class Controller extends BaseController
      * Статус подтверждения успешного подтверждения регистрации.
      */
     public const CONFIRMATION_SUCCESS = 'CONFIRMATION_SUCCESS';
+
+    /**
+     * Статус подтверждения успешшного повторного отправления SMS сообщения.
+     */
+    public const RESEND_SMS_SUCCESS = 'RESEND_SMS_SUCCESS';
 
     /**
      * Ошибки по умолчанию.
@@ -36,6 +47,19 @@ class Controller extends BaseController
         return response()->json([
             'data' => $data,
             'errors' => $errors,
+        ]);
+    }
+
+    /**
+     * Ответ сервера при критической ошибке.
+     *
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function criticalResponse()
+    {
+        return response()->json([
+            'data' => null,
+            'errors' => [__('response.error_critical')],
         ]);
     }
 }

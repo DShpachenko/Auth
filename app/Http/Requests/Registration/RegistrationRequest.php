@@ -28,12 +28,12 @@ class RegistrationRequest extends Validation
         ]);
 
         $this->setMessages([
-            'name.unique' => 'Логин должен быть уникальным!',
-            'name.required' => 'Поле с логином должно быть заполненно!',
-            'phone.unique' => 'Номер должен быть уникальным!',
-            'phone.required' => 'Поле с телефоном должно быть заполненно!',
-            'password.min' => 'Пароль не должен быть короче 6 символов!',
-            'password.required' => 'Поле с паролем должно быть заполненно!'
+            'name.unique' => __('response.error_uniq_nickname'),
+            'name.required' => __('response.name__required'),
+            'phone.unique' => __('response.phone_unique'),
+            'phone.required' => __('response.phone_required'),
+            'password.min' => __('response.password_min'),
+            'password.required' => __('response.password_required'),
         ]);
 
         $this->validateForm($data);

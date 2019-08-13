@@ -2,29 +2,26 @@
 
 namespace App\Http\Requests\Registration;
 
-use App\Models\User;
+use App\Models\{User, UserLogin};
 use App\Http\Requests\Validation;
 
 /**
- * Валидация входящего запроса для подтверждения регистрации.
+ * Валидация входящего запроса повторной отправки sms сообщения.
  *
- * Class ConfirmationRequest
+ * Class ResendSmsRequest
  * @package App\Http\Requests
  */
-class ConfirmationRequest extends Validation
+class ResendSmsRequest extends Validation
 {
     /**
-     * Валидация метода подтверждения регистрации.
+     * Валидация метода повторной отправки sms сообщения.
      *
      * @param $data
      * @return bool
      */
     public function make($data)
     {
-        $this->setRules([
-            'phone' => 'required|string|phone|max:30',
-            'code' => 'required|string|min:4',
-        ]);
+        $this->setRules(['phone' => 'required|string|phone|max:30']);
 
         $this->setMessages([
             'phone.required' => __('response.phone_required'),
@@ -32,10 +29,10 @@ class ConfirmationRequest extends Validation
             'string' => __('response.string'),
             'max' => __('response.max'),
             'min' => __('response.min'),
-            'code.required' => __('response.code_required'),
         ]);
 
         $this->validateForm($data);
+        $this->validateIp(UserLogin::TYPE_RESENDING_SMS);
         $this->validateUserByPhone($data['phone'], User::STATUS_NEW);
 
         return $this->fails();
