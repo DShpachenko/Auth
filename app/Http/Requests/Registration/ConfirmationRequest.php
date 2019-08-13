@@ -19,7 +19,7 @@ class ConfirmationRequest extends Validation
      * @param \Illuminate\Http\Request $request
      * @return bool
      */
-    public function make($request)
+    public function make($request): bool
     {
         $this->setRules([
             'phone' => 'required|max:30',

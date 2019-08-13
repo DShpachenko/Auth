@@ -20,7 +20,7 @@ class RegistrationRequest extends Validation
      * @param \Illuminate\Http\Request $request
      * @return bool
      */
-    public function make($request)
+    public function make($request): bool
     {
         $data = $request->all();
 
