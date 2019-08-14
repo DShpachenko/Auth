@@ -6,11 +6,18 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\ {User, UserTokens, UserLogin};
 use App\Models\ {Sms, SmsCode};
+use App\Http\Requests\Forgot\{ForgotRequest};
 
+/**
+ * Запрос, подтверждение и повторная отправка смс с кодом для восстановления пароля.
+ *
+ * Class ForgotController
+ * @package App\Http\Controllers\Api
+ */
 class ForgotController extends Controller
 {
     /**
-     * Запрос на сброс пароля (отправляется смс код для подтверждения нового пароля)
+     * Запрос на сброс пароля (отправляется смс код для подтверждения нового пароля).
      *
      * @param Request $request
      * @return string

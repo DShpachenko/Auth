@@ -94,7 +94,7 @@ class RegisterController extends Controller
     public function resendingSms(Request $request): string
     {
         try {
-            $validator = new ResendSmsRequest();
+            $validator = new Forgot();
 
             if (!$validator->make($request)) {
                 return $this->response(null, $validator->getErrors());

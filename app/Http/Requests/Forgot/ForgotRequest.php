@@ -1,30 +1,31 @@
 <?php
 
-namespace App\Http\Requests\Registration;
+namespace App\Http\Requests\Forgot;
 
 use App\Models\{User, UserLogin};
 use App\Http\Requests\Validation;
 
 /**
- * Валидация входящего запроса повторной отправки sms сообщения.
+ * Валидация входящего запроса сброса пароля.
  *
- * Class ResendSmsRequest
+ * Class ForgotRequest
  * @package App\Http\Requests
  */
-class ResendSmsRequest extends Validation
+class ForgotRequest extends Validation
 {
     /**
-     * Валидация метода повторной отправки sms сообщения.
+     * Валидация метода запроса сброса пароля.
      *
      * @param \Illuminate\Http\Request $request
      * @return bool
      */
     public function make($request): bool
     {
-        $this->setRules(['phone' => 'required|min:5|max:30']);
+        $this->setRules(['phone' => 'required|max:30']);
 
         $this->setMessages([
             'phone.required' => __('response.phone_required'),
+            'string' => __('response.string'),
             'max' => __('response.max'),
             'min' => __('response.min'),
         ]);
