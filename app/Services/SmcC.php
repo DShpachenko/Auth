@@ -28,7 +28,9 @@ class SmsC
                 ]
             ]));
         } catch (\Exception $e) {
-            // @todo log
+            \Log::error($e);
+        } catch (\Exception $t) {
+            \Log::error($t);
         }
 
         if (substr_count($result, 'OK') == 0) {

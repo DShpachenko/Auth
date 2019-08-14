@@ -59,7 +59,7 @@ class LoginController extends Controller
             //    'language' => $geo['iso_code']
             //]);
         } catch (\Exception $e) {
-            // @todo доработать логирование
+            \Log::error($e);
         }
 
         return $this->response([

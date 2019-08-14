@@ -4,7 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use App\Models\{User, Sms, SmsCode};
+use App\Models\{User, SmsCode};
 use App\Http\Requests\Registration\{RegistrationRequest, ConfirmationRequest, ResendSmsRequest};
 
 /**
@@ -30,19 +30,20 @@ class RegisterController extends Controller
                 return $this->response(null, $validator->getErrors());
             }
 
-            $user = User::registerUser($request);
+            /** @var User $user */
+            if (!$user = User::registerUser($request->all())) {
+                return $this->response(null, [__('response.error_critical')]);
+            }
+
             $code = SmsCode::addCode($user->id);
 
-            Sms::addSms($user->id, Sms::TYPE_REGISTRATION, $code->code);
-            /** @todo Добавить отправку SMS сообщения при успешной регистрации пользователя через RebbitMq */
+            /** @todo Добавить отправку SMS сообщения при успешной регистрации пользователя через RebbitMq вместо этого говна*/
 
-            return $this->response(['status' => self::REGISTRATION_SUCCESS]);
+            return $this->response(['status' => self::REGISTRATION_SUCCESS, 'code' => $code]);
         } catch (\Exception $e) {
-            dd($e);
-            /** @todo Добавить логирование при не обработанном исключении */
+            \Log::error($e);
         } catch (\Throwable $t) {
-            dd($t);
-            /** @todo Добавить логирование при не критической ошибке */
+            \Log::error($t);
         }
 
         return $this->response(null, [__('response.error_critical')]);
@@ -63,11 +64,8 @@ class RegisterController extends Controller
                 return $this->response(null, $validator->getErrors());
             }
 
+            /** @var User $user */
             $user = $validator->getUser();
-
-            if (!Sms::checkRepairSms($user->id, Sms::TYPE_REGISTRATION)) {
-                return $this->response(null, $validator->getErrorsByMessage(__('response.error_failed_sms_code')));
-            }
 
             if (!SmsCode::checkCode($user->id, $request->get('code'))) {
                 return $this->response(null, $validator->getErrorsByMessage(__('response.error_failed_sms_code')));
@@ -79,11 +77,9 @@ class RegisterController extends Controller
 
             return $this->response(['status' => self::CONFIRMATION_SUCCESS]);
         } catch (\Exception $e) {
-            dd($e);
-            /** @todo Добавить логирование при не обработанном исключении */
+            \Log::error($e);
         } catch (\Throwable $t) {
-            dd($t);
-            /** @todo Добавить логирование при не критической ошибке */
+            \Log::error($t);
         }
 
         return $this->response(null, [__('response.error_critical')]);
@@ -104,25 +100,25 @@ class RegisterController extends Controller
                 return $this->response(null, $validator->getErrors());
             }
 
+            /** @var User $user */
             $user = $validator->getUser();
+            /** @var SmsCode $lastCode */
             $lastCode = SmsCode::getLastByUser($user->id);
 
-            if ((time() - $lastCode->created_at) < SmsCode::SECONDS_BEFORE_NEXT) {
+            /** @todo убрать проверку на окружение после интеграции API */
+            if (env('APP_ENV') !== 'local' && ((time() - $lastCode->created_at) < SmsCode::SECONDS_BEFORE_NEXT)) {
                 return $this->response(null, $validator->getErrorsByMessage(__('response.wait_1_minute')));
             }
 
             $code = SmsCode::addCode($user->id);
 
             /** @todo Добавить отправку SMS сообщения при успешной регистрации пользователя через RebbitMq */
-            Sms::addSms($user->id, Sms::TYPE_REGISTRATION, $code->code);
 
-            return $this->response(['status' => self::RESEND_SMS_SUCCESS]);
+            return $this->response(['status' => self::RESEND_SMS_SUCCESS, 'code' => $code]);
         } catch (\Exception $e) {
-            dd($e);
-            /** @todo Добавить логирование при не обработанном исключении */
+            \Log::error($e);
         } catch (\Throwable $t) {
-            dd($t);
-            /** @todo Добавить логирование при не критической ошибке */
+            \Log::error($t);
         }
 
         return $this->response(null, [__('response.error_critical')]);

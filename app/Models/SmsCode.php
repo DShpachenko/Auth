@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * Class SmsCode
+ * Class SmsCode.
  *
  * @package App\Models\Sms
  * @property integer $id
@@ -24,17 +24,17 @@ use Illuminate\Database\Eloquent\Model;
 class SmsCode extends Model
 {
     /**
-     * Время жизни (актуальности) смс кода
+     * Время жизни (актуальности) смс кода.
      */
-    const LIFE_TIME = 300;
+    public const LIFE_TIME = 300;
 
     /**
-     * Количество секунд до повторной отправки SMS сообщения
+     * Количество секунд до повторной отправки SMS сообщения.
      */
-    const SECONDS_BEFORE_NEXT = 50;
+    public const SECONDS_BEFORE_NEXT = 50;
 
     /**
-     * Отключение авто дат
+     * Отключение авто дат.
      *
      * @var bool
      */
@@ -59,38 +59,46 @@ class SmsCode extends Model
     ];
 
     /**
-     * Генерация смс кода
+     * Генерация смс кода.
      *
      * @return int
      */
-    public static function generateCode():int
+    public static function generateCode(): int
     {
-        return rand(1000, 9999);
+        return random_int(1000, 9999);
     }
 
     /**
-     * Добавление смс кода
+     * Добавление смс кода.
      *
      * @param $userId
-     * @return mixed
+     * @return SmsCode|null
      */
-    public static function addCode($userId):SmsCode
+    public static function addCode($userId): ? SmsCode
     {
-        return self::create([
-            'user_id' => $userId,
-            'code' => self::generateCode(),
-            'created_at' => time()
-        ]);
+        try {
+            return self::create([
+                'user_id' => $userId,
+                'code' => self::generateCode(),
+                'created_at' => time()
+            ]);
+        } catch (\Exception $e) {
+            \Log::error($e);
+        } catch (\Throwable $t) {
+            \Log::error($t);
+        }
+
+        return null;
     }
 
     /**
-     * Проверка на валидность смс кода
+     * Проверка на валидность смс кода.
      *
      * @param $userId
      * @param $code
      * @return bool
      */
-    public static function checkCode($userId, $code):bool
+    public static function checkCode($userId, $code): bool
     {
         $time = time();
 
@@ -112,12 +120,12 @@ class SmsCode extends Model
     }
 
     /**
-     * Последнее отправленное SMS сообщение пользователю
+     * Последнее отправленное SMS сообщение пользователю.
      *
      * @param $userId
-     * @return SmsCode
+     * @return SmsCode|null
      */
-    public static function getLastByUser($userId):SmsCode
+    public static function getLastByUser($userId): ? SmsCode
     {
         return self::where('user_id', $userId)
                    ->orderBy('id', 'desc')

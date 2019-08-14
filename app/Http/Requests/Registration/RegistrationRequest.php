@@ -44,7 +44,11 @@ class RegistrationRequest extends Validation
         ]);
 
         $this->validateForm($data);
-        $this->validateIp($request->ip(),UserLogin::TYPE_REGISTRATION);
+
+        /** @todo убрать это условие после интеграции api с клиентов */
+        if (env('APP_ENV') !== 'production') {
+            $this->validateIp($request->ip(), UserLogin::TYPE_REGISTRATION);
+        }
 
         return $this->fails();
     }
