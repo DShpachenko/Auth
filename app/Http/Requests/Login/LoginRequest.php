@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Http\Requests;
+namespace App\Http\Requests\Login;
 
 use App\Models\User;
-use Illuminate\Validation\Rule;
-use Illuminate\Foundation\Http\FormRequest;
+use App\Models\UserLogin;
+use App\Http\Requests\Validation;
 
 /**
  * Валидация входящего запроса для авторизации.
@@ -12,41 +12,46 @@ use Illuminate\Foundation\Http\FormRequest;
  * Class LoginRequest
  * @package App\Http\Requests
  */
-class LoginRequest extends FormRequest
+class LoginRequest extends Validation
 {
     /**
-     * Проверка авторизации пользователя.
+     * Метод валидации регистрационных данных.
      *
+     * @param \Illuminate\Http\Request $request
      * @return bool
      */
-    public function authorize(): bool
+    public function make($request): bool
     {
-        return auth()->check();
-    }
+        $data = $request->all();
 
-    /**
-     * Список правил валидации API ключа.
-     *
-     * @return array
-     */
-    public function rules(): array
-    {
-        $rules = User::RULES;
-        $rules['name'] .= Rule::unique('users')->ignore($this->user);
-        $rules['phone'] .= Rule::unique('users')->ignore($this->user);
-        $rules['email'] .= Rule::unique('users')->ignore($this->user);
-        $rules['password'] .= $this->route()->user ? 'nullable' : 'required';
+        if (isset($data['phone'])) {
+            $data['phone'] = User::clearPhoneNumber($data['phone']);
+        }
 
-        return $rules;
-    }
+        $this->setRules([
+            'name' => 'required|string|max:50|regex:/(^([a-zA-Z]+)(\d+)?$)/u|unique:users',
+            'phone' => 'required|max:30|unique:users',
+            'password' => 'required|string|min:6|max:50',
+        ]);
 
-    /**
-     * Возвращает список сообщений валидации.
-     *
-     * @return array
-     */
-    public function messages(): array
-    {
-        return User::RULES_MESSAGES;
+        $this->setMessages([
+            'name.unique' => __('response.error_uniq_nickname'),
+            'name.required' => __('response.name__required'),
+            'phone.unique' => __('response.phone_unique'),
+            'phone.required' => __('response.phone_required'),
+            'password.min' => __('response.password_min'),
+            'password.required' => __('response.password_required'),
+        ]);
+
+        $this->validateForm($data);
+
+        /** @todo убрать это условие после интеграции api с клиентов */
+        if (env('APP_ENV') !== 'production') {
+            $this->validateIp($request->ip(), UserLogin::TYPE_LOGIN);
+        }
+
+        $this->validateUserByPhone($request->get('phone'), User::STATUS_VERIFIED);
+
+        return $this->fails();
     }
 }

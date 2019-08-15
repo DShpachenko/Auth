@@ -165,7 +165,7 @@ class GeoIPApi
      * Получение информации о месторасположении пользователя через сервис по IP.
      *
      * @param $ip
-     * @return bool|mixed
+     * @return mixed|null
      */
     public function getInfo($ip)
     {
@@ -186,6 +186,6 @@ class GeoIPApi
             );
         }
 
-        return false;
+        return null;
     }
 }
