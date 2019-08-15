@@ -2,159 +2,190 @@
 
 namespace App\Services;
 
+use GuzzleHttp\Client;
 use Exception;
-use Illuminate\Support\Arr;
-use Torann\GeoIP\Services\AbstractService;
 
-use Torann\GeoIP\Support\HttpClient;
-
-class GeoIPApi extends AbstractService
+/**
+ * Сервис получения адреса по IP.
+ *
+ * Class GeoIPApi
+ * @package App\Services
+ */
+class GeoIPApi
 {
     /**
-     * Http client instance.
-     *
-     * @var HttpClient
+     * Метод отправки запроса.
      */
-    protected $client;
+    private const HTTP_METHOD = 'GET';
 
     /**
-     * An array of continents.
+     * Ответ сервиса.
      *
-     * @var array
+     * @var $response;
      */
-    protected $continents;
+    private $response;
 
     /**
-     * The "booting" method of the service.
+     * Точка входа в сервис для обработки обращения.
+     *
+     * @var string $endPoint
+     */
+    private $endPoint;
+
+    /**
+     * Название сервиса.
+     *
+     * @var string $service
+     */
+    private $service;
+
+    /**
+     * http client Guzzle.
+     *
+     * @var $client
+     */
+    private $client;
+
+    /**
+     * Конфигурация подключения к сервису.
+     *
+     * @var $config.
+     */
+    private $config;
+
+    /**
+     * Инициализация.
+     * GeoIPApi constructor.
+     */
+    public function __construct()
+    {
+        $this->setConfiguration();
+        $this->setClient();
+        $this->endPoint = $this->config['end_point'];
+    }
+
+    /**
+     * Получение конфигурации.
+     *
+     * @param null $serviceName
+     */
+    private function setConfiguration($serviceName = null): void
+    {
+        $this->service = $serviceName ?? config('geoipapi.service');
+        $this->config = config('geoipapi.'.$this->service);
+    }
+
+    /**
+     * Формирование клиента Guzzle.
      *
      * @return void
      */
-    public function boot($lang = 'en')
+    private function setClient(): void
     {
-        $base = [
-            'base_uri' => 'http://ip-api.com/',
-            'headers' => [
-                'User-Agent' => 'Laravel-GeoIP',
-            ],
-            'query' => [
-                'fields' => 49663,
-                'lang' => $lang,
-            ],
-        ];
-
-        // Using the Pro service
-        if ($this->config('key')) {
-            $base['base_uri'] = ($this->config('secure') ? 'https' : 'http') . '://pro.ip-api.com/';
-            $base['query']['key'] = $this->config('key');
+        if (isset($this->config['headers'])) {
+            $this->client = new Client($this->config['headers']);
         }
 
-        $this->client = new HttpClient($base);
-
-        // Set continents
-        if (file_exists($this->config('continent_path'))) {
-            $this->continents = json_decode(file_get_contents($this->config('continent_path')), true);
-        }
+        $this->client = new Client();
     }
 
     /**
-     * {@inheritdoc}
-     */
-    public function locate($ip)
-    {
-        // Get data from client
-        $data = $this->client->get('json/' . $ip);
-
-        // Verify server response
-        if ($this->client->getErrors() !== null) {
-            throw new Exception('Request failed (' . $this->client->getErrors() . ')');
-        }
-
-        // Parse body content
-        $json = json_decode($data[0]);
-
-        // Verify response status
-        if ($json->status !== 'success') {
-            throw new Exception('Request failed (' . $json->message . ')');
-        }
-
-        return [
-            'ip' => $ip,
-            'iso_code' => $json->countryCode,
-            'country' => $json->country,
-            'city' => $json->city,
-            'state' => $json->region,
-            'state_name' => $json->regionName,
-            'postal_code' => $json->zip,
-            'lat' => $json->lat,
-            'lon' => $json->lon,
-            'timezone' => $json->timezone,
-            'continent' => $this->getContinent($json->countryCode),
-        ];
-    }
-
-    /**
-     * Update function for service.
+     * Отправка запроса к сервису.
      *
-     * @return string
-     * @throws Exception
+     * @return bool | Client
      */
-    public function update()
+    private function request()
     {
-        $data = $this->client->get('http://dev.maxmind.com/static/csv/codes/country_continent.csv');
 
-        // Verify server response
-        if ($this->client->getErrors() !== null) {
-            throw new Exception($this->client->getErrors());
-        }
+        $this->response = $this->client->request(self::HTTP_METHOD, $this->buildUrl(), [
+            'query' => $this->config['parameters']
+        ]);
 
-        $lines = explode("\n", $data[0]);
-
-        array_shift($lines);
-
-        $output = [];
-
-        foreach ($lines as $line) {
-            $arr = str_getcsv($line);
-
-            if (count($arr) < 2) {
-                continue;
-            }
-
-            $output[$arr[0]] = $arr[1];
-        }
-
-        // Get path
-        $path = $this->config('continent_path');
-
-        file_put_contents($path, json_encode($output));
-
-        return "Continent file ({$path}) updated.";
+        return $this->response;
     }
 
     /**
-     * Get continent based on country code.
-     *
-     * @param string $code
+     * Получение строки сервиса.
      *
      * @return string
      */
-    private function getContinent($code)
+    private function buildUrl(): string
     {
-        return Arr::get($this->continents, $code, 'Unknown');
+        return $this->endPoint.$this->config['response_format'].'/'.$this->config['ip'];
     }
 
     /**
-     * Получить информацию о геолокции пользователя
+     * Получение названия сервиса.
+     *
+     * @return string
+     */
+    public function getService(): string
+    {
+        return $this->service;
+    }
+
+    public function getResponse()
+    {
+        return $this->response;
+    }
+
+    /**
+     * Получение точки доступа к сервису.
+     *
+     * @return string
+     */
+    public function getEndPoint(): string
+    {
+        return $this->endPoint;
+    }
+
+    /**
+     * Получение списка параметров сервиса.
+     *
+     * @return array
+     */
+    public function getParameters(): array
+    {
+        return $this->config;
+    }
+
+    /**
+     * Установка сервиса.
+     *
+     * @param $serviceName
+     * @return void
+     */
+    public function setService($serviceName): void
+    {
+        $this->setConfiguration($serviceName);
+        $this->setClient();
+    }
+
+    /**
+     * Получение информации о месторасположении пользователя через сервис по IP.
      *
      * @param $ip
-     * @param string $lang
-     * @return array|\Torann\GeoIP\Location|null
-     * @throws Exception
+     * @return bool|mixed
      */
-    public function getInfo($ip, $lang = 'en')
+    public function getInfo($ip)
     {
-        $this->boot($lang);
+        $this->config['ip'] = $ip;
 
-        return $this->locate($ip);
+        try {
+            $response = $this->request();
+
+            if ($response->getStatusCode() !== 200) {
+                return false;
+            }
+
+            return $response->getBody()->getContents();
+        } catch (Exception $e) {
+            \Log::error(
+                'Ошибка при обращении к сервису ' . $this->service . ' для получения адреса по IP',
+                $this->config['parameters']['ip']
+            );
+        }
+
+        return false;
     }
 }
