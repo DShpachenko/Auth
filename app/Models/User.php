@@ -42,7 +42,6 @@ class User extends Model
      */
     public const STATUS_NEW = 0;
     public const STATUS_VERIFIED = 1;
-    public const STATUS_REPAIR_PASSWORD = 2;
 
     /**
      * The attributes that are mass assignable.
@@ -118,23 +117,43 @@ class User extends Model
     /**
      * Верификация пользователя.
      *
-     * @return void
+     * @return bool
      */
-    public function confirmRegistration(): void
+    public function confirmRegistration(): bool
     {
-        $this->status = self::STATUS_VERIFIED;
-        $this->save();
+        try {
+            $this->status = self::STATUS_VERIFIED;
+            $this->save();
+
+            return true;
+        } catch (\Exception $e) {
+            \Log::error($e);
+        } catch (\Throwable $t) {
+            \Log::error($t);
+        }
+
+        return false;
     }
 
     /**
      * Обновление пароля пользователя.
      *
      * @param $password
-     * @return void
+     * @return bool
      */
-    public function updatePassword($password): void
+    public function updatePassword($password): bool
     {
-        $this->password = Hash::make($password);
-        $this->save();
+        try {
+            $this->password = Hash::make($password);
+            $this->save();
+
+            return true;
+        } catch (\Exception $e) {
+            \Log::error($e);
+        } catch (\Throwable $t) {
+            \Log::error($t);
+        }
+
+        return false;
     }
 }

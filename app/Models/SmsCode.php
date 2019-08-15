@@ -8,10 +8,12 @@ use Illuminate\Database\Eloquent\Model;
  * Class SmsCode.
  *
  * @package App\Models\Sms
- * @property integer $id
- * @property integer $user_id
- * @property string $code
- * @property integer $created_at
+ * @property int $id
+ * @property int $status
+ * @property int $type
+ * @property int $user_id
+ * @property int $code
+ * @property int $created_at
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Sms\SmsCode newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Sms\SmsCode newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Sms\SmsCode query()
@@ -32,6 +34,36 @@ class SmsCode extends Model
      * Количество секунд до повторной отправки SMS сообщения.
      */
     public const SECONDS_BEFORE_NEXT = 50;
+
+    /**
+     * Тип регистрация.
+     */
+    public const TYPE_REGISTRATION = 0;
+
+    /**
+     * Тип повторная отправка смс при регистрации.
+     */
+    public const TYPE_REGISTRATION_RESEND = 1;
+
+    /**
+     * Тип восстановление пароля.
+     */
+    public const TYPE_PASSWORD_RECOVERY = 2;
+
+    /**
+     * Тип повторная отправка смс сообщения при запросе на восстановление пароля.
+     */
+    public const TYPE_PASSWORD_RECOVERY_RESEND = 3;
+
+    /**
+     * Статус новые, не использованный.
+     */
+    public const STATUS_NEW = 0;
+
+    /**
+     * Статус использованный.
+     */
+    public const STATUS_USED = 1;
 
     /**
      * Отключение авто дат.
@@ -62,6 +94,7 @@ class SmsCode extends Model
      * Генерация смс кода.
      *
      * @return int
+     * @throws \Exception
      */
     public static function generateCode(): int
     {
@@ -71,13 +104,16 @@ class SmsCode extends Model
     /**
      * Добавление смс кода.
      *
-     * @param $userId
+     * @param int $userId
+     * @param int $type
      * @return SmsCode|null
      */
-    public static function addCode($userId): ? SmsCode
+    public static function addCode($userId, $type = self::TYPE_REGISTRATION): ? SmsCode
     {
         try {
             return self::create([
+                'status' => self::STATUS_NEW,
+                'type' => $type,
                 'user_id' => $userId,
                 'code' => self::generateCode(),
                 'created_at' => time()
@@ -96,14 +132,17 @@ class SmsCode extends Model
      *
      * @param $userId
      * @param $code
+     * @param array $types
      * @return bool
      */
-    public static function checkCode($userId, $code): bool
+    public static function checkCode($userId, $code, $types): bool
     {
         $time = time();
 
         $row = self::where('user_id', $userId)
                    ->where('code', $code)
+                   ->where('status', self::STATUS_NEW)
+                   ->whereIn('type', $types)
                    ->orderBy('id', 'desc')
                    ->first();
 
@@ -113,6 +152,9 @@ class SmsCode extends Model
 
         // проверка на просрочку
         if (($time - $row->created_at) <= self::LIFE_TIME) {
+            $row->status = self::STATUS_USED;
+            $row->save();
+
             return true;
         }
 
@@ -122,13 +164,15 @@ class SmsCode extends Model
     /**
      * Последнее отправленное SMS сообщение пользователю.
      *
-     * @param $userId
+     * @param int $userId
+     * @param array $type
      * @return SmsCode|null
      */
-    public static function getLastByUser($userId): ? SmsCode
+    public static function getLastByUser($userId, $type): ? SmsCode
     {
         return self::where('user_id', $userId)
+                   ->whereIn('type', $type)
                    ->orderBy('id', 'desc')
-                   ->firstOr();
+                   ->first();
     }
 }

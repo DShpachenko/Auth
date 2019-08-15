@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Registration;
+namespace App\Http\Requests\Forgot;
 
 use App\Models\User;
 use App\Http\Requests\Validation;
@@ -11,7 +11,7 @@ use App\Http\Requests\Validation;
  * Class ConfirmationRequest
  * @package App\Http\Requests
  */
-class sdf extends Validation
+class ConfirmationForgotRequest extends Validation
 {
     /**
      * Валидация метода подтверждения регистрации.
@@ -22,21 +22,21 @@ class sdf extends Validation
     public function make($request): bool
     {
         $this->setRules([
-            'phone' => 'required|max:30',
             'code' => 'required|min:4|max:10',
+            'phone' => 'required|min:5|max:30',
+            'password' => 'required|min:6|max:50',
         ]);
 
         $this->setMessages([
-            'phone.required' => __('response.phone_required'),
-            'phone.phone' => __('response.phone_phone'),
-            'string' => __('response.string'),
-            'max' => __('response.max'),
-            'min' => __('response.min'),
             'code.required' => __('response.code_required'),
+            'phone.required' => __('response.phone_required'),
+            'password.required' => __('response.password_required'),
+            'min' => __('response.min'),
+            'max' => __('response.max'),
         ]);
 
         $this->validateForm($request->all());
-        $this->validateUserByPhone($request->get('phone'), User::STATUS_NEW);
+        $this->validateUserByPhone($request->get('phone'), User::STATUS_VERIFIED);
 
         return $this->fails();
     }

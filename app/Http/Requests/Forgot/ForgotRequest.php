@@ -21,11 +21,12 @@ class ForgotRequest extends Validation
      */
     public function make($request): bool
     {
-        $this->setRules(['phone' => 'required|max:30']);
+        $this->setRules([
+            'phone' => 'required|min:5|max:30',
+        ]);
 
         $this->setMessages([
             'phone.required' => __('response.phone_required'),
-            'string' => __('response.string'),
             'max' => __('response.max'),
             'min' => __('response.min'),
         ]);
@@ -34,10 +35,10 @@ class ForgotRequest extends Validation
 
         /** @todo убрать это условие после интеграции api с клиентов */
         if (env('APP_ENV') !== 'production') {
-            $this->validateIp($request->ip(), UserLogin::TYPE_RESENDING_SMS);
+            $this->validateIp($request->ip(), UserLogin::TYPE_REPEAT_PASSWORD);
         }
 
-        $this->validateUserByPhone($request->get('phone'), User::STATUS_NEW);
+        $this->validateUserByPhone($request->get('phone'), User::STATUS_VERIFIED);
 
         return $this->fails();
     }

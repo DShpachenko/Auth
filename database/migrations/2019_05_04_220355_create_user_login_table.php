@@ -20,6 +20,7 @@ class CreateUserLoginTable extends Migration
             $table->integer('type');
             $table->integer('status');
             $table->integer('created_at');
+            $table->foreign('user_id')->references('id')->on('users');
         });
     }
 

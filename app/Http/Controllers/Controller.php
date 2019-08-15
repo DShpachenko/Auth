@@ -28,6 +28,21 @@ class Controller extends BaseController
     public const RESEND_SMS_SUCCESS = 'RESEND_SMS_SUCCESS';
 
     /**
+     * Статус успешного запроса на сброс пароля.
+     */
+    public const FORGOT_SEND_SMS_SUCCESS = 'FORGOT_SEND_SMS_SUCCESS';
+
+    /**
+     * Статус успешного сброса пароля.
+     */
+    public const FORGOT_CONFIRMATION_SUCCESS = 'FORGOT_CONFIRMATION_SUCCESS';
+
+    /**
+     * Статус успешного запроса на повторную отправку смс сообщения с кодом для сброса пароля.
+     */
+    public const FORGOT_RESEND_SMS_SUCCESS = 'FORGOT_RESEND_SMS_SUCCESS';
+
+    /**
      * Ошибки по умолчанию.
      */
     private const DEFAULT_ERRORS = [

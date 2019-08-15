@@ -17,7 +17,8 @@ class CreateUserTokensTable extends Migration
             $table->bigIncrements('id');
             $table->integer('user_id');
             $table->integer('status');
-            $table->string('token');
+            $table->string('access_token');
+            $table->string('refresh_token');
             $table->timestamps();
         });
     }

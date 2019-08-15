@@ -35,11 +35,11 @@ class RegisterController extends Controller
                 return $this->response(null, [__('response.error_critical')]);
             }
 
-            $code = SmsCode::addCode($user->id);
+            $code = SmsCode::addCode($user->id, SmsCode::TYPE_REGISTRATION);
 
-            /** @todo Добавить отправку SMS сообщения при успешной регистрации пользователя через RebbitMq вместо этого говна*/
+            /** @todo Добавить отправку SMS сообщения при успешной регистрации пользователя через RabbitMq вместо этого говна*/
 
-            return $this->response(['status' => self::REGISTRATION_SUCCESS, 'code' => $code]);
+            return $this->response(['status' => self::REGISTRATION_SUCCESS, 'code' => $code->code]);
         } catch (\Exception $e) {
             \Log::error($e);
         } catch (\Throwable $t) {
@@ -67,15 +67,17 @@ class RegisterController extends Controller
             /** @var User $user */
             $user = $validator->getUser();
 
-            if (!SmsCode::checkCode($user->id, $request->get('code'))) {
+            if (!SmsCode::checkCode($user->id, $request->get('code'), [SmsCode::TYPE_REGISTRATION, SmsCode::TYPE_REGISTRATION_RESEND])) {
                 return $this->response(null, $validator->getErrorsByMessage(__('response.error_failed_sms_code')));
             }
 
-            $user->confirmRegistration();
-            /** @todo Добавить обработку с rabbitMq на создание новой информации о пользователе */
-            //UserInfo::findByUser($user->id);
+            if (!$user->confirmRegistration()) {
+                return $this->response(null, [__('response.error_critical')]);
+            }
 
-            return $this->response(['status' => self::CONFIRMATION_SUCCESS]);
+            /** @todo Добавить обработку с rabbitMq на создание новой информации о пользователе */
+
+            return $this->response(['status' => self::FORGOT_CONFIRMATION_SUCCESS]);
         } catch (\Exception $e) {
             \Log::error($e);
         } catch (\Throwable $t) {
@@ -94,7 +96,7 @@ class RegisterController extends Controller
     public function resendingSms(Request $request): string
     {
         try {
-            $validator = new Forgot();
+            $validator = new ResendSmsRequest();
 
             if (!$validator->make($request)) {
                 return $this->response(null, $validator->getErrors());
@@ -103,18 +105,18 @@ class RegisterController extends Controller
             /** @var User $user */
             $user = $validator->getUser();
             /** @var SmsCode $lastCode */
-            $lastCode = SmsCode::getLastByUser($user->id);
+            $lastCode = SmsCode::getLastByUser($user->id, [SmsCode::TYPE_REGISTRATION, SmsCode::TYPE_REGISTRATION_RESEND]);
 
             /** @todo убрать проверку на окружение после интеграции API */
             if (env('APP_ENV') !== 'local' && ((time() - $lastCode->created_at) < SmsCode::SECONDS_BEFORE_NEXT)) {
                 return $this->response(null, $validator->getErrorsByMessage(__('response.wait_1_minute')));
             }
 
-            $code = SmsCode::addCode($user->id);
+            $code = SmsCode::addCode($user->id, SmsCode::TYPE_REGISTRATION_RESEND);
 
             /** @todo Добавить отправку SMS сообщения при успешной регистрации пользователя через RebbitMq */
 
-            return $this->response(['status' => self::RESEND_SMS_SUCCESS, 'code' => $code]);
+            return $this->response(['status' => self::RESEND_SMS_SUCCESS, 'code' => $code->code]);
         } catch (\Exception $e) {
             \Log::error($e);
         } catch (\Throwable $t) {

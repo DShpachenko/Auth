@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\Registration;
+namespace App\Http\Requests\Forgot;
 
 use App\Models\User;
 use App\Models\UserLogin;
@@ -12,7 +12,7 @@ use App\Http\Requests\Validation;
  * Class LoginRequest
  * @package App\Http\Requests
  */
-class sdf extends Validation
+class ResendSmsForgotRequest extends Validation
 {
     /**
      * Метод валидации регистрационных данных.
@@ -29,26 +29,23 @@ class sdf extends Validation
         }
 
         $this->setRules([
-            'name' => 'required|string|max:50|regex:/(^([a-zA-Z]+)(\d+)?$)/u|unique:users',
-            'phone' => 'required|max:30|unique:users',
-            'password' => 'required|string|min:6|max:50',
+            'phone' => 'required|min:5|max:30',
         ]);
 
         $this->setMessages([
-            'name.unique' => __('response.error_uniq_nickname'),
-            'name.required' => __('response.name__required'),
-            'phone.unique' => __('response.phone_unique'),
             'phone.required' => __('response.phone_required'),
-            'password.min' => __('response.password_min'),
-            'password.required' => __('response.password_required'),
+            'min' => __('response.min'),
+            'max' => __('response.max'),
         ]);
 
         $this->validateForm($data);
 
         /** @todo убрать это условие после интеграции api с клиентов */
         if (env('APP_ENV') !== 'production') {
-            $this->validateIp($request->ip(), UserLogin::TYPE_REGISTRATION);
+            $this->validateIp($request->ip(), UserLogin::TYPE_RESENDING_SMS);
         }
+
+        $this->validateUserByPhone($request->get('phone'), User::STATUS_VERIFIED);
 
         return $this->fails();
     }

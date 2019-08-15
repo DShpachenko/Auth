@@ -4,9 +4,9 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\ {User, UserTokens, UserLogin};
-use App\Models\ {Sms, SmsCode};
-use App\Http\Requests\Forgot\{ForgotRequest};
+use App\Models\ {User, UserTokens};
+use App\Models\ {SmsCode};
+use App\Http\Requests\Forgot\{ForgotRequest, ConfirmationForgotRequest, ResendSmsForgotRequest};
 
 /**
  * Запрос, подтверждение и повторная отправка смс с кодом для восстановления пароля.
@@ -24,109 +24,71 @@ class ForgotController extends Controller
      */
     public function forgot(Request $request):string
     {
-        if (!UserLogin::checkIpAccess($request->ip(), UserLogin::TYPE_REPEAT_PASSWORD)) {
-            return $this->response([
-                'status' => self::STATUS_FAILED,
-                'errors' => [
-                    'message' => 'Превышено число попыток, попробуйте позже'
-                ]
-            ]);
+        $validator = new ForgotRequest();
+
+        if (!$validator->make($request)) {
+            return $this->response(null, $validator->getErrors());
         }
 
-        $user = User::findByPhone($request->get('phone'));
+        /** @var User $user */
+        $user = $validator->getUser();
+        $code = SmsCode::addCode($user->id, SmsCode::TYPE_PASSWORD_RECOVERY);
 
-        if (!$user || $user->status !== User::STATUS_VERIFIED) {
-            return $this->response([
-                'status' => self::STATUS_FAILED,
-                'errors' => [
-                    'message' => 'Пользователь не найден или не верифицирован'
-                ]
-            ]);
-        }
+        /** @todo Добавить отправку SMS сообщения при успешной регистрации пользователя через RabbitMq */
 
-        $code = SmsCode::addCode($user->id);
-
-        Sms::addSms($user->id, Sms::TYPE_PASSWORD_RECOVERY, $code->code);
-
-        return $this->response(['status' => self::STATUS_SUCCESS]);
+        return $this->response(['status' => self::FORGOT_SEND_SMS_SUCCESS, 'code' => $code->code]);
     }
 
     /**
-     * Подтверждение сброса пароля (установка нового пароля)
+     * Подтверждение сброса пароля (установка нового пароля).
      *
      * @param Request $request
      * @return string
      */
     public function confirmation(Request $request):string
     {
-        $user = User::findByPhone($request->get('phone'));
+        $validator = new ConfirmationForgotRequest();
 
-        if (!$user || $user->status !== User::STATUS_VERIFIED) {
-            return $this->response([
-                'status' => self::STATUS_FAILED,
-                'errors' => [
-                    'message' => 'Пользователь не найден или не верифицирован'
-                ]
-            ]);
+        if (!$validator->make($request)) {
+            return $this->response(null, $validator->getErrors());
         }
 
-        if (!Sms::checkRepairSms($user->id, Sms::TYPE_PASSWORD_RECOVERY)) {
-            return $this->response([
-                'status' => self::STATUS_FAILED,
-                'errors' => [
-                    'message' => 'Не верный код (возможно уже не актуальный) или сообщение не отправлено'
-                ]
-            ]);
+        /** @var User $user */
+        $user = $validator->getUser();
+
+        if (!SmsCode::checkCode($user->id, $request->get('code'), [SmsCode::TYPE_PASSWORD_RECOVERY, SmsCode::TYPE_PASSWORD_RECOVERY_RESEND])) {
+            return $this->response(null, $validator->getErrorsByMessage(__('response.error_failed_sms_code')));
         }
 
-        if (!SmsCode::checkCode($user->id, $request->get('code'))) {
-            return $this->response([
-                'status' => self::STATUS_FAILED,
-                'errors' => [
-                    'message' => 'Не верный код (возможно уже не актуальный) или сообщение не отправлено'
-                ]
-            ]);
+        if (!$user->updatePassword($request->get('password'))) {
+            return $this->response(null, [__('response.error_critical')]);
         }
-
-        $user->updatePassword($request->get('password'));
 
         UserTokens::disableUserTokens($user->id);
 
-        return $this->response(['status' => self::STATUS_SUCCESS]);
+        return $this->response(['status' => self::FORGOT_CONFIRMATION_SUCCESS]);
     }
 
     /**
-     * Повторная отправка смс для подтверждения сброса пароля
+     * Повторная отправка смс с кодом для подтверждения сброса пароля.
      *
      * @param Request $request
      * @return string
      */
     public function resendingSms(Request $request):string
     {
-        if (!UserLogin::checkIpAccess($request->ip(), UserLogin::TYPE_RESENDING_SMS)) {
-            return $this->response([
-                'status' => self::STATUS_FAILED,
-                'errors' => [
-                    'message' => 'Пользователь не найден или не верифицирован'
-                ]
-            ]);
+        $validator = new ResendSmsForgotRequest();
+
+        if (!$validator->make($request)) {
+            return $this->response(null, $validator->getErrors());
         }
 
-        $user = User::findByPhone($request->get('phone'));
-
-        if (!$user || $user->status !== User::STATUS_VERIFIED) {
-            return $this->response([
-                'status' => self::STATUS_FAILED,
-                'errors' => [
-                    'message' => 'Пользователь не найден или не верифицирован'
-                ]
-            ]);
-        }
-
+        /** @var User $user */
+        $user = $validator->getUser();
         $code = SmsCode::addCode($user->id);
 
-        Sms::addSms($user->id, Sms::TYPE_PASSWORD_RECOVERY, $code->code);
+        /** @todo Добавить отправку SMS сообщения при успешной регистрации пользователя через RabbitMq */
 
-        return $this->response(['status' => self::STATUS_SUCCESS]);
+        return $this->response(['status' => self::FORGOT_RESEND_SMS_SUCCESS, 'code' => $code->code]);
     }
 }
