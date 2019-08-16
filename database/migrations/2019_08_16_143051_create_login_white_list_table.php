@@ -4,7 +4,7 @@ use Illuminate\Support\Facades\Schema;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Database\Migrations\Migration;
 
-class CreateUserTokensTable extends Migration
+class CreateLoginWhiteListTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,12 +13,12 @@ class CreateUserTokensTable extends Migration
      */
     public function up()
     {
-        Schema::connection('mongodb')->create('user_tokens', function (Blueprint $table) {
+        Schema::connection('mongodb')->create('login_white_list', function (Blueprint $table) {
             $table->bigIncrements('id');
             $table->integer('user_id');
+            $table->string('token_id');
+            $table->ipAddress('ip');
             $table->integer('status');
-            $table->string('token');
-            $table->integer('create_time');
             $table->timestamps();
         });
     }
@@ -30,6 +30,6 @@ class CreateUserTokensTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('user_tokens');
+        Schema::dropIfExists('login_white_list');
     }
 }

@@ -5,52 +5,39 @@ namespace App\Models;
 use Jenssegers\Mongodb\Eloquent\Model;
 
 /**
- * Class UserTokens.
+ * Class LoginWhiteList.
  *
- * @package App\Models\UserTokens
+ * @package App\Models\LoginWhiteList
  * @property string _id
  * @property int $user_id
+ * @property string token_id
+ * @property string $ip
  * @property int $status
- * @property string $token
- * @property int $create_time
  * @property string $created_at
  * @property string $updated_at
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserTokens newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserTokens newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserTokens query()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\LoginWhiteList newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\LoginWhiteList newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\LoginWhiteList query()
  * @mixin \Eloquent
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserTokens whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserTokens whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserTokens where($value, $val)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserTokens whereStatus($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserTokens whereToken($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserTokens whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserTokens whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\LoginWhiteList whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\LoginWhiteList whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\LoginWhiteList where($value, $val)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\LoginWhiteList whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\LoginWhiteList whereToken($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\LoginWhiteList whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\LoginWhiteList whereUserId($value)
  */
-class UserTokens extends Model
+class LoginWhiteList extends Model
 {
     /**
-     * Секретный ключ для формирвоания JWT.
+     * Ошибочная (запретная) авторизация / обновление токена.
      */
-    private const SECRET_KEY = 'Ka3njgu3y1OF2NdsRP67IVWrY7swWgkX6M4kGJLUq4';
+    public const STATUS_FAILED = 0;
 
     /**
-     * Время доступности токена как ACCESS_TOKEN всего 5 минут (60 * 5).
+     * Успешная авторизация / обновление токена.
      */
-    public const ACCESS_TIME = 300;
-
-    /**
-     * Время доступности токена как REFRESH_TOKEN всего 10 минут (60 * 10).
-     */
-    public const REFRESH_TIME = 600;
-
-    /**
-     * Статусы.
-     */
-    public const STATUS_NEW = 0;
-    public const STATUS_WORK = 1;
-    public const STATUS_OLD = 2;
-    public const STATUS_END = 3;
+    public const STATUS_SUCCESS = 1;
 
     /**
      * Подключение к Mongodb.
@@ -60,13 +47,6 @@ class UserTokens extends Model
     protected $connection = 'mongodb';
 
     /**
-     * Название таблицы.
-     *
-     * @var string
-     */
-    protected $table = 'user_tokens';
-
-    /**
      * Список полей, доступных для создания / редактирования в качестве массива.
      *
      * @var array
@@ -74,8 +54,16 @@ class UserTokens extends Model
     protected $fillable = [
         'user_id',
         'status',
-        'token'
+        'token_id',
+        'ip',
     ];
+
+    /**
+     * Название таблицы.
+     *
+     * @var string
+     */
+    protected $table = 'login_white_list';
 
     /**
      * Список статусов токенов.
@@ -85,34 +73,30 @@ class UserTokens extends Model
     public static function getStatusList():array
     {
         return [
-            self::STATUS_NEW => 'Не верефицированный',
-            self::STATUS_WORK => 'Рабочий',
-            self::STATUS_OLD => 'Превышено время исполнения',
-            self::STATUS_END => 'Закрыта сессия'
+            self::STATUS_FAILED => 'Ошибочная (запретная) авторизация / обновление токена',
+            self::STATUS_SUCCESS => 'Успешная авторизация / смена токена',
         ];
     }
 
     /**
      * Создание токена для нового пользователя.
      *
-     * @param $userId
-     * @return UserTokens|null
+     * @param int $userId
+     * @param string $tokenId
+     * @param string $ip
+     * @param int $status
+     * @return LoginWhiteList|null
      * @throws \Exception
      */
-    public static function add($userId): ? UserTokens
+    public static function add($userId, $tokenId, $ip, $status): ? LoginWhiteList
     {
         try {
-            $row = self::create([
+            return self::create([
                 'user_id' => $userId,
-                'status' => self::STATUS_WORK,
-                'create_time' => time(),
-                'token' => '',
+                'token_id' => $tokenId,
+                'status' => $status,
+                'ip' => $ip
             ]);
-
-            $row->token = self::generateJwtToken($row->_id);
-            $row->save();
-
-            return $row;
         } catch (\Exception $e) {
             \Log::error($e);
         } catch (\Throwable $t) {

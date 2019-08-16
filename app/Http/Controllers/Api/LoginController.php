@@ -6,13 +6,19 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
 use App\Services\GeoIPApi;
-use App\Models\ {User, UserTokens, UserLogin};
+use App\Models\ {User, UserTokens, LoginWhiteList};
 use App\Http\Requests\Login\LoginRequest;
 
+/**
+ * Авторизация пользователя и получение токенов (access_token, refresh_token).
+ *
+ * Class LoginController
+ * @package App\Http\Controllers\Api
+ */
 class LoginController extends Controller
 {
     /**
-     * Авторизация
+     * Авторизация.
      *
      * @param Request $request
      * @return string
@@ -33,7 +39,15 @@ class LoginController extends Controller
                 return $this->response(null, $validator->getErrorsByMessage(__('response.failed_login_pass')));
             }
 
-            $token = UserTokens::createFirstConnection($user->id);
+            $token = UserTokens::add($user->id);
+
+            if (!$token) {
+                LoginWhiteList::add($user->id, $token->_id, $request->ip(), LoginWhiteList::STATUS_FAILED);
+
+                return $this->response(null, $validator->getErrorsByMessage(__('response.failed_login_pass')));
+            }
+
+            LoginWhiteList::add($user->id, $token->_id, $request->ip(), LoginWhiteList::STATUS_SUCCESS);
 
             try {
                 $geo = (new GeoIPApi())->getInfo($request->ip());

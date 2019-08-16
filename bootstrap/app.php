@@ -23,6 +23,8 @@ $app = new Laravel\Lumen\Application(
 
 $app->withFacades();
 
+$app->register(Jenssegers\Mongodb\MongodbServiceProvider::class);
+
 $app->withEloquent();
 
 /*

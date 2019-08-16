@@ -37,7 +37,7 @@ class RegisterController extends Controller
 
             $code = SmsCode::addCode($user->id, SmsCode::TYPE_REGISTRATION);
 
-            /** @todo Добавить отправку SMS сообщения при успешной регистрации пользователя через RabbitMq вместо этого говна*/
+            /** @todo Добавить отправку SMS сообщения при успешной регистрации пользователя через RabbitMq*/
 
             return $this->response(['status' => self::REGISTRATION_SUCCESS, 'code' => $code->code]);
         } catch (\Exception $e) {

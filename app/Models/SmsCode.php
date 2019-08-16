@@ -87,7 +87,9 @@ class SmsCode extends Model
     protected $fillable = [
         'user_id',
         'code',
-        'created_at'
+        'created_at',
+        'status',
+        'type',
     ];
 
     /**
