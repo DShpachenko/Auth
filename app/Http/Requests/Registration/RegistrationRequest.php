@@ -24,7 +24,7 @@ class RegistrationRequest extends Validation
     {
         $data = $request->all();
 
-        if (isset($data['phone'])) {
+        if (isset($data['phone']) && $data['phone'] !== '') {
             $data['phone'] = User::clearPhoneNumber($data['phone']);
         }
 

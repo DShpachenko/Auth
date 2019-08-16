@@ -66,19 +66,6 @@ class LoginWhiteList extends Model
     protected $table = 'login_white_list';
 
     /**
-     * Список статусов токенов.
-     *
-     * @return array
-     */
-    public static function getStatusList():array
-    {
-        return [
-            self::STATUS_FAILED => 'Ошибочная (запретная) авторизация / обновление токена',
-            self::STATUS_SUCCESS => 'Успешная авторизация / смена токена',
-        ];
-    }
-
-    /**
      * Создание токена для нового пользователя.
      *
      * @param int $userId
@@ -104,67 +91,5 @@ class LoginWhiteList extends Model
         }
 
         return null;
-    }
-
-    /**
-     * Создание JWT токена.
-     *
-     * @param int $tokenId
-     * @return string
-     * @throws \Exception
-     */
-    public static function generateJwtToken($tokenId):string
-    {
-        // Создание заголовка (header) в формате JSON строки.
-        $header = json_encode(['typ' => 'JWT', 'alg' => 'HS256']);
-
-        // Создание payload.
-        $payload = json_encode(['token' => $tokenId]);
-
-        // Получение Header в формате строки вида Base64Url.
-        $base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
-
-        // Получение Payload в формате строки вида Base64Url.
-        $base64UrlPayload = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($payload));
-
-        // Создание сигнатуры.
-        $signature = hash_hmac('sha256', $base64UrlHeader.".".$base64UrlPayload, self::SECRET_KEY, true);
-
-        // Получение Signature в формате строки вида Base64Url.
-        $base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
-
-        return $base64UrlHeader.'.'.$base64UrlPayload.'.'.$base64UrlSignature;
-    }
-
-    /**
-     * Отключение всех пользовательских токенов.
-     *
-     * @param $userId
-     */
-    public static function disableUserTokens($userId):void
-    {
-        self::where('user_id', $userId)
-            ->update(['status' => self::STATUS_END]);
-    }
-
-    /**
-     * Поиск активного токена у пользователя.
-     *
-     * @param $userId
-     * @param $token
-     * @return bool
-     */
-    public static function checkToken($userId, $token):bool
-    {
-        $row = self::where('user_id', $userId)
-                   ->where('token', 'like', '%' . $token . '%')
-                   ->where('status', self::STATUS_WORK)
-                   ->first();
-
-        if (!$row) {
-            return false;
-        }
-
-        return true;
     }
 }

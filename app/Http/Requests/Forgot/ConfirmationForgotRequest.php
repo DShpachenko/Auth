@@ -21,6 +21,12 @@ class ConfirmationForgotRequest extends Validation
      */
     public function make($request): bool
     {
+        $data = $request->all();
+
+        if (isset($data['phone']) && $data['phone'] !== '') {
+            $data['phone'] = User::clearPhoneNumber($data['phone']);
+        }
+
         $this->setRules([
             'code' => 'required|min:4|max:10',
             'phone' => 'required|min:5|max:30',
@@ -35,8 +41,8 @@ class ConfirmationForgotRequest extends Validation
             'max' => __('response.max'),
         ]);
 
-        $this->validateForm($request->all());
-        $this->validateUserByPhone($request->get('phone'), User::STATUS_VERIFIED);
+        $this->validateForm($data);
+        $this->validateUserByPhone($data['phone'], User::STATUS_VERIFIED);
 
         return $this->fails();
     }

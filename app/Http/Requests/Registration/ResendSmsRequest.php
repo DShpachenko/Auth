@@ -21,6 +21,12 @@ class ResendSmsRequest extends Validation
      */
     public function make($request): bool
     {
+        $data = $request->all();
+
+        if (isset($data['phone']) && $data['phone'] !== '') {
+            $data['phone'] = User::clearPhoneNumber($data['phone']);
+        }
+
         $this->setRules(['phone' => 'required|min:5|max:30']);
 
         $this->setMessages([
@@ -29,14 +35,14 @@ class ResendSmsRequest extends Validation
             'min' => __('response.min'),
         ]);
 
-        $this->validateForm($request->all());
+        $this->validateForm($data);
 
         /** @todo убрать это условие после интеграции api с клиентов */
         if (env('APP_ENV') !== 'production') {
             $this->validateIp($request->ip(), UserLogin::TYPE_RESENDING_SMS);
         }
 
-        $this->validateUserByPhone($request->get('phone'), User::STATUS_NEW);
+        $this->validateUserByPhone($data['phone'], User::STATUS_NEW);
 
         return $this->fails();
     }

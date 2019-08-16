@@ -168,7 +168,8 @@ class GeoIPApi
      * @return mixed|null
      */
     public function getInfo($ip)
-    {
+    {dd('123');
+        dd($this->config);
         $this->config['ip'] = $ip;
 
         try {

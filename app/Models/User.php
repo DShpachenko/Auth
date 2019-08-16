@@ -69,10 +69,14 @@ class User extends Model
      * Приведение номера к единой форме (только числа).
      *
      * @param $phone
-     * @return int
+     * @return int|null
      */
-    public static function clearPhoneNumber($phone): int
+    public static function clearPhoneNumber($phone): ? int
     {
+        if ($phone === '' || !$phone) {
+            return null;
+        }
+
         return preg_replace('/[\D]/', '', $phone);
     }
 

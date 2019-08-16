@@ -74,23 +74,9 @@ class UserTokens extends Model
     protected $fillable = [
         'user_id',
         'status',
-        'token'
+        'token',
+        'create_time',
     ];
-
-    /**
-     * Список статусов токенов.
-     *
-     * @return array
-     */
-    public static function getStatusList():array
-    {
-        return [
-            self::STATUS_NEW => 'Не верефицированный',
-            self::STATUS_WORK => 'Рабочий',
-            self::STATUS_OLD => 'Превышено время исполнения',
-            self::STATUS_END => 'Закрыта сессия'
-        ];
-    }
 
     /**
      * Создание токена для нового пользователя.
@@ -129,7 +115,7 @@ class UserTokens extends Model
      * @return string
      * @throws \Exception
      */
-    public static function generateJwtToken($tokenId):string
+    public static function generateJwtToken($tokenId): string
     {
         // Создание заголовка (header) в формате JSON строки.
         $header = json_encode(['typ' => 'JWT', 'alg' => 'HS256']);
@@ -157,30 +143,9 @@ class UserTokens extends Model
      *
      * @param $userId
      */
-    public static function disableUserTokens($userId):void
+    public static function disableUserTokens($userId): void
     {
         self::where('user_id', $userId)
             ->update(['status' => self::STATUS_END]);
-    }
-
-    /**
-     * Поиск активного токена у пользователя.
-     *
-     * @param $userId
-     * @param $token
-     * @return bool
-     */
-    public static function checkToken($userId, $token):bool
-    {
-        $row = self::where('user_id', $userId)
-                   ->where('token', 'like', '%' . $token . '%')
-                   ->where('status', self::STATUS_WORK)
-                   ->first();
-
-        if (!$row) {
-            return false;
-        }
-
-        return true;
     }
 }

@@ -21,6 +21,12 @@ class ConfirmationRequest extends Validation
      */
     public function make($request): bool
     {
+        $data = $request->all();
+
+        if (isset($data['phone']) && $data['phone'] !== '') {
+            $data['phone'] = User::clearPhoneNumber($data['phone']);
+        }
+
         $this->setRules([
             'phone' => 'required|max:30',
             'code' => 'required|min:4|max:10',
@@ -35,8 +41,8 @@ class ConfirmationRequest extends Validation
             'code.required' => __('response.code_required'),
         ]);
 
-        $this->validateForm($request->all());
-        $this->validateUserByPhone($request->get('phone'), User::STATUS_NEW);
+        $this->validateForm($data);
+        $this->validateUserByPhone($data['phone'], User::STATUS_NEW);
 
         return $this->fails();
     }

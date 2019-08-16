@@ -24,7 +24,7 @@ class ResendSmsForgotRequest extends Validation
     {
         $data = $request->all();
 
-        if (isset($data['phone'])) {
+        if (isset($data['phone']) && $data['phone'] !== '') {
             $data['phone'] = User::clearPhoneNumber($data['phone']);
         }
 
@@ -45,7 +45,7 @@ class ResendSmsForgotRequest extends Validation
             $this->validateIp($request->ip(), UserLogin::TYPE_RESENDING_SMS);
         }
 
-        $this->validateUserByPhone($request->get('phone'), User::STATUS_VERIFIED);
+        $this->validateUserByPhone($data['phone'], User::STATUS_VERIFIED);
 
         return $this->fails();
     }
