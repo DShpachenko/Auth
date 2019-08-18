@@ -119,7 +119,7 @@
 
 # API
 
-###Регистрация
+### Регистрация
 POST - ```http://auth.local/api/registration```
 <br>
 <pre>
@@ -146,7 +146,7 @@ POST - ```http://auth.local/api/registration```
 }
 </pre>
 
-###Повторная отправка sms сообщения при регистрации
+### Повторная отправка sms сообщения при регистрации
 POST - ```http://auth.local/api/registration/resending-sms```
 <br>
 <pre>
@@ -171,7 +171,7 @@ POST - ```http://auth.local/api/registration/resending-sms```
 }
 </pre>
 
-###Подтверждение регистрации
+### Подтверждение регистрации
 POST - ```http://auth.local/api/registration/confirm```
 <br>
 <pre>
@@ -196,7 +196,7 @@ POST - ```http://auth.local/api/registration/confirm```
 }
 </pre>
 
-###Авторизация
+### Авторизация
 POST - ```http://auth.local/api/login```
 <br>
 <pre>
@@ -225,7 +225,7 @@ POST - ```http://auth.local/api/login```
 }
 </pre>
 
-###Обновление токена
+### Обновление токена
 POST - ```http://auth.local/api/token/update```
 <br>
 <pre>
@@ -253,7 +253,7 @@ POST - ```http://auth.local/api/token/update```
 }
 </pre>
 
-###Запрос восстановления пароля
+### Запрос восстановления пароля
 POST - ```http://auth.local/api/forgot```
 <br>
 <pre>
@@ -278,7 +278,7 @@ POST - ```http://auth.local/api/forgot```
 }
 </pre>
 
-###Повторная отправка sms сообщения при восстановлении пароля
+### Повторная отправка sms сообщения при восстановлении пароля
 POST - ```http://auth.local/api/forgot/resending-sms```
 <br>
 <pre>
@@ -303,7 +303,7 @@ POST - ```http://auth.local/api/forgot/resending-sms```
 }
 </pre>
 
-###Подтверждение восстановления пароля
+### Подтверждение восстановления пароля
 POST - ```http://auth.local/api/forgot/confirm```
 <br>
 <pre>
