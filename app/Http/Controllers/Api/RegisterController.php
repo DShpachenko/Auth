@@ -35,6 +35,7 @@ class RegisterController extends Controller
                 return $this->response(null, [__('response.error_critical')]);
             }
 
+            /** @var SmsCode $code */
             $code = SmsCode::addCode($user->id, SmsCode::TYPE_REGISTRATION);
 
             /** @todo Добавить отправку SMS сообщения при успешной регистрации пользователя через RabbitMq*/
@@ -43,7 +44,7 @@ class RegisterController extends Controller
         } catch (\Exception $e) {
             \Log::error($e);
         } catch (\Throwable $t) {
-            \Log::error($t);
+            \Log::critical($t);
         }
 
         return $this->response(null, [__('response.error_critical')]);
@@ -77,11 +78,11 @@ class RegisterController extends Controller
 
             /** @todo Добавить обработку с rabbitMq на создание новой информации о пользователе */
 
-            return $this->response(['status' => self::FORGOT_CONFIRMATION_SUCCESS]);
+            return $this->response(['status' => self::REGISTRATION_CONFIRMATION_SUCCESS]);
         } catch (\Exception $e) {
             \Log::error($e);
         } catch (\Throwable $t) {
-            \Log::error($t);
+            \Log::critical($t);
         }
 
         return $this->response(null, [__('response.error_critical')]);
@@ -112,15 +113,16 @@ class RegisterController extends Controller
                 return $this->response(null, $validator->getErrorsByMessage(__('response.wait_1_minute')));
             }
 
+            /** @var SmsCode $code */
             $code = SmsCode::addCode($user->id, SmsCode::TYPE_REGISTRATION_RESEND);
 
-            /** @todo Добавить отправку SMS сообщения при успешной регистрации пользователя через RebbitMq */
+            /** @todo Добавить отправку SMS сообщения при успешной регистрации пользователя через RabbitMq */
 
-            return $this->response(['status' => self::RESEND_SMS_SUCCESS, 'code' => $code->code]);
+            return $this->response(['status' => self::REGISTRATION_RESEND_SMS_SUCCESS, 'code' => $code->code]);
         } catch (\Exception $e) {
             \Log::error($e);
         } catch (\Throwable $t) {
-            \Log::error($t);
+            \Log::critical($t);
         }
 
         return $this->response(null, [__('response.error_critical')]);

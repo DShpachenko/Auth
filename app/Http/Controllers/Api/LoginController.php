@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Http\Request;
-use App\Services\GeoIPApi;
 use App\Models\ {User, UserTokens, LoginWhiteList};
 use App\Http\Requests\Login\LoginRequest;
 
@@ -49,16 +48,8 @@ class LoginController extends Controller
 
             LoginWhiteList::add($user->id, $token->_id, $request->ip(), LoginWhiteList::STATUS_SUCCESS);
 
-            try {
-                //$geo = (new GeoIPApi())->getInfo($request->ip());
-
-                //dd($geo);
-            } catch (\Exception $e) {
-                \Log::error($e);
-            }
-
             return $this->response([
-                'status' => self::REGISTRATION_SUCCESS,
+                'status' => self::LOGIN_SUCCESS,
                 'token' => $token->token,
                 'token_created_time' => $token->create_time,
                 'access_time' => UserTokens::ACCESS_TIME,
@@ -67,7 +58,7 @@ class LoginController extends Controller
         } catch (\Exception $e) {
             \Log::error($e);
         } catch (\Throwable $t) {
-            \Log::error($t);
+            \Log::critical($t);
         }
 
         return $this->response(null, [__('response.error_critical')]);

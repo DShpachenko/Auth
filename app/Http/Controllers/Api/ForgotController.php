@@ -24,19 +24,27 @@ class ForgotController extends Controller
      */
     public function forgot(Request $request):string
     {
-        $validator = new ForgotRequest();
+        try {
+            $validator = new ForgotRequest();
 
-        if (!$validator->make($request)) {
-            return $this->response(null, $validator->getErrors());
+            if (!$validator->make($request)) {
+                return $this->response(null, $validator->getErrors());
+            }
+
+            /** @var User $user */
+            $user = $validator->getUser();
+            $code = SmsCode::addCode($user->id, SmsCode::TYPE_PASSWORD_RECOVERY);
+
+            /** @todo Добавить отправку SMS сообщения при успешной регистрации пользователя через RabbitMq */
+
+            return $this->response(['status' => self::FORGOT_SEND_SMS_SUCCESS, 'code' => $code->code]);
+        } catch (\Exception $e) {
+            \Log::error($e);
+        } catch (\Throwable $t) {
+            \Log::critical($t);
         }
 
-        /** @var User $user */
-        $user = $validator->getUser();
-        $code = SmsCode::addCode($user->id, SmsCode::TYPE_PASSWORD_RECOVERY);
-
-        /** @todo Добавить отправку SMS сообщения при успешной регистрации пользователя через RabbitMq */
-
-        return $this->response(['status' => self::FORGOT_SEND_SMS_SUCCESS, 'code' => $code->code]);
+        return $this->response(null, [__('response.error_critical')]);
     }
 
     /**
@@ -47,26 +55,34 @@ class ForgotController extends Controller
      */
     public function confirmation(Request $request):string
     {
-        $validator = new ConfirmationForgotRequest();
+        try {
+            $validator = new ConfirmationForgotRequest();
 
-        if (!$validator->make($request)) {
-            return $this->response(null, $validator->getErrors());
+            if (!$validator->make($request)) {
+                return $this->response(null, $validator->getErrors());
+            }
+
+            /** @var User $user */
+            $user = $validator->getUser();
+
+            if (!SmsCode::checkCode($user->id, $request->get('code'), [SmsCode::TYPE_PASSWORD_RECOVERY, SmsCode::TYPE_PASSWORD_RECOVERY_RESEND])) {
+                return $this->response(null, $validator->getErrorsByMessage(__('response.error_failed_sms_code')));
+            }
+
+            if (!$user->updatePassword($request->get('password'))) {
+                return $this->response(null, [__('response.error_critical')]);
+            }
+
+            UserTokens::disableUserTokens($user->id);
+
+            return $this->response(['status' => self::FORGOT_CONFIRMATION_SUCCESS]);
+        } catch (\Exception $e) {
+            \Log::error($e);
+        } catch (\Throwable $t) {
+            \Log::critical($t);
         }
 
-        /** @var User $user */
-        $user = $validator->getUser();
-
-        if (!SmsCode::checkCode($user->id, $request->get('code'), [SmsCode::TYPE_PASSWORD_RECOVERY, SmsCode::TYPE_PASSWORD_RECOVERY_RESEND])) {
-            return $this->response(null, $validator->getErrorsByMessage(__('response.error_failed_sms_code')));
-        }
-
-        if (!$user->updatePassword($request->get('password'))) {
-            return $this->response(null, [__('response.error_critical')]);
-        }
-
-        UserTokens::disableUserTokens($user->id);
-
-        return $this->response(['status' => self::FORGOT_CONFIRMATION_SUCCESS]);
+        return $this->response(null, [__('response.error_critical')]);
     }
 
     /**
@@ -77,18 +93,26 @@ class ForgotController extends Controller
      */
     public function resendingSms(Request $request):string
     {
-        $validator = new ResendSmsForgotRequest();
+        try {
+            $validator = new ResendSmsForgotRequest();
 
-        if (!$validator->make($request)) {
-            return $this->response(null, $validator->getErrors());
+            if (!$validator->make($request)) {
+                return $this->response(null, $validator->getErrors());
+            }
+
+            /** @var User $user */
+            $user = $validator->getUser();
+            $code = SmsCode::addCode($user->id);
+
+            /** @todo Добавить отправку SMS сообщения при успешной регистрации пользователя через RabbitMq */
+
+            return $this->response(['status' => self::FORGOT_RESEND_SMS_SUCCESS, 'code' => $code->code]);
+        } catch (\Exception $e) {
+            \Log::error($e);
+        } catch (\Throwable $t) {
+            \Log::critical($t);
         }
 
-        /** @var User $user */
-        $user = $validator->getUser();
-        $code = SmsCode::addCode($user->id);
-
-        /** @todo Добавить отправку SMS сообщения при успешной регистрации пользователя через RabbitMq */
-
-        return $this->response(['status' => self::FORGOT_RESEND_SMS_SUCCESS, 'code' => $code->code]);
+        return $this->response(null, [__('response.error_critical')]);
     }
 }

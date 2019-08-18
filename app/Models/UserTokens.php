@@ -18,6 +18,7 @@ use Jenssegers\Mongodb\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserTokens newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserTokens newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserTokens query()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserTokens find($value)
  * @mixin \Eloquent
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserTokens whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserTokens whereId($value)
@@ -136,6 +137,40 @@ class UserTokens extends Model
         $base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
 
         return $base64UrlHeader.'.'.$base64UrlPayload.'.'.$base64UrlSignature;
+    }
+
+    /**
+     * Разбор JWT токена и возврат _id токена.
+     *
+     * @param $token
+     * @return string|null
+     */
+    public static function tokenDecomposition($token): ? string
+    {
+        try {
+            [$header, $payload, $signature] = explode('.', $token);
+
+            $payloadJson = base64_decode($payload);
+
+            return json_decode($payloadJson, false)->token;
+        } catch (\Exception $e) {
+            \Log::error($e);
+        } catch (\Throwable $t) {
+            \Log::critical($t);
+        }
+
+        return null;
+    }
+
+    /**
+     * Выключение токена.
+     *
+     * @return void
+     */
+    public function disableToken(): void
+    {
+        $this->status = self::STATUS_END;
+        $this->save();
     }
 
     /**

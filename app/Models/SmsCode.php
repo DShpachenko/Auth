@@ -14,14 +14,16 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $user_id
  * @property int $code
  * @property int $created_at
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Sms\SmsCode newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Sms\SmsCode newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Sms\SmsCode query()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\SmsCode newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\SmsCode newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\SmsCode query()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\SmsCode create($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\SmsCode where($value, $val)
  * @mixin \Eloquent
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Sms\SmsCode whereCode($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Sms\SmsCode whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Sms\SmsCode whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\Sms\SmsCode whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\SmsCode whereCode($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\SmsCode whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\SmsCode whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\SmsCode whereUserId($value)
  */
 class SmsCode extends Model
 {
@@ -113,6 +115,9 @@ class SmsCode extends Model
     public static function addCode($userId, $type = self::TYPE_REGISTRATION): ? SmsCode
     {
         try {
+            self::where('user_id', $userId)
+                ->update(['status' => self::STATUS_USED]);
+
             return self::create([
                 'status' => self::STATUS_NEW,
                 'type' => $type,
@@ -123,7 +128,7 @@ class SmsCode extends Model
         } catch (\Exception $e) {
             \Log::error($e);
         } catch (\Throwable $t) {
-            \Log::error($t);
+            \Log::critical($t);
         }
 
         return null;

@@ -33,4 +33,6 @@ $router->group(['namespace' => 'Api', 'prefix' => 'api'], function ($router) {
 
     $router->post('forgot/resending-sms',         'ForgotController@resendingSms');
 
+    $router->post('token/update',                 'TokenController@update');
+
 });

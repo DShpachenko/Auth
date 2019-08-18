@@ -20,12 +20,12 @@ class Controller extends BaseController
     /**
      * Статус подтверждения успешного подтверждения регистрации.
      */
-    public const CONFIRMATION_SUCCESS = 'CONFIRMATION_SUCCESS';
+    public const REGISTRATION_CONFIRMATION_SUCCESS = 'REGISTRATION_CONFIRMATION_SUCCESS';
 
     /**
      * Статус подтверждения успешшного повторного отправления SMS сообщения.
      */
-    public const RESEND_SMS_SUCCESS = 'RESEND_SMS_SUCCESS';
+    public const REGISTRATION_RESEND_SMS_SUCCESS = 'REGISTRATION_RESEND_SMS_SUCCESS';
 
     /**
      * Статус успешного запроса на сброс пароля.
@@ -41,6 +41,16 @@ class Controller extends BaseController
      * Статус успешного запроса на повторную отправку смс сообщения с кодом для сброса пароля.
      */
     public const FORGOT_RESEND_SMS_SUCCESS = 'FORGOT_RESEND_SMS_SUCCESS';
+
+    /**
+     * Успешная авторизация.
+     */
+    public const LOGIN_SUCCESS = 'LOGIN_SUCCESS';
+
+    /**
+     * Успешное обновление токена.
+     */
+    public const REFRESH_TOKEN_SUCCESS = 'REFRESH_TOKEN_SUCCESS';
 
     /**
      * Ошибки по умолчанию.

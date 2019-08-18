@@ -5,11 +5,13 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 
 /**
- * App\Models\User\UserLogin
+ * App\Models\UserLogin
  *
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User\UserLogin newModelQuery()
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User\UserLogin newQuery()
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User\UserLogin query()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserLogin newModelQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserLogin newQuery()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserLogin query()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserLogin create($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserLogin where($value, $val)
  * @mixin \Eloquent
  * @property int $id
  * @property string $ip
@@ -17,44 +19,53 @@ use Illuminate\Database\Eloquent\Model;
  * @property int $type
  * @property int $status
  * @property int $created_at
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User\UserLogin whereCreatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User\UserLogin whereId($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User\UserLogin whereIp($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User\UserLogin whereStatus($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User\UserLogin whereType($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User\UserLogin whereUpdatedAt($value)
- * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User\UserLogin whereUserId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserLogin whereCreatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserLogin whereId($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserLogin whereIp($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserLogin whereStatus($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserLogin whereType($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserLogin whereUpdatedAt($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\UserLogin whereUserId($value)
  */
 class UserLogin extends Model
 {
-    // Допустимый лимит запросов определенного типа за день
-    const LIMIT_DAY_ACTIONS = 20;
-
-    // Допустимый лимит запросов определенного типа за промежуток времени
-    const LIMIT_ACTIONS = 5;
-
-    // Допустимый лимит времени (5 минут) для определенного типа запросов
-    const PERIOD_FOR_ACTIONS = 300;
-
-    // Период блокировки (5 минут)
-    const BAN_PERIOD = 300;
-
     /**
-     * Статусы операции
+     * Допустимый лимит запросов определенного типа за день.
      */
-    const STATUS_DISALLOW = 0;
-    const STATUS_ALLOW = 1;
+    public const LIMIT_DAY_ACTIONS = 20;
 
     /**
-     * Типы операций
+     * Лимит обновлений токена за день.
      */
-    const TYPE_REGISTRATION = 0;
-    const TYPE_LOGIN = 1;
-    const TYPE_RESENDING_SMS = 2;
-    const TYPE_REPEAT_PASSWORD = 3;
+    public const LIMIT_TOKEN_UPDATES_FOR_DAY = 160;
 
     /**
-     * Отключение авто дат
+     * Допустимый лимит запросов определенного типа за промежуток времени.
+     */
+    public const LIMIT_ACTIONS = 5;
+
+    /**
+     * Допустимый лимит времени (5 минут) для определенного типа запросов.
+     */
+    public const PERIOD_FOR_ACTIONS = 300;
+
+    /**
+     * Статусы операции.
+     */
+    public const STATUS_DISALLOW = 0;
+    public const STATUS_ALLOW = 1;
+
+    /**
+     * Типы операций.
+     */
+    public const TYPE_REGISTRATION = 0;
+    public const TYPE_LOGIN = 1;
+    public const TYPE_RESENDING_SMS = 2;
+    public const TYPE_REPEAT_PASSWORD = 3;
+    public const TYPE_TOKEN_UPDATE = 4;
+
+    /**
+     * Отключение авто дат.
      *
      * @var bool
      */
@@ -81,13 +92,14 @@ class UserLogin extends Model
     protected $table = 'user_login';
 
     /**
-     * Проверка дневного лиммита совершенных операций
+     * Проверка дневного лиммита совершенных операций.
      *
      * @param $ip
      * @param $type
+     * @param $status
      * @return bool
      */
-    private static function checkDayLimitActions($ip, $type, $status):bool
+    private static function checkDayLimitActions($ip, $type, $status): bool
     {
         $from = strtotime(date("Y-m-d 00:00:00"));
         $to = strtotime(date("Y-m-d 23:59:59"));
@@ -99,7 +111,9 @@ class UserLogin extends Model
             ->where('type', $type)
             ->count();
 
-        if ($count >= self::LIMIT_DAY_ACTIONS) {
+        $limit = $type === self::TYPE_TOKEN_UPDATE ? self::LIMIT_TOKEN_UPDATES_FOR_DAY : self::LIMIT_DAY_ACTIONS;
+
+        if ($count >= $limit) {
             return false;
         }
 
@@ -107,13 +121,13 @@ class UserLogin extends Model
     }
 
     /**
-     * Проверка (доступа) превышения количества обращений с одного IP адреса
+     * Проверка (доступа) превышения количества обращений с одного IP адреса.
      *
      * @param $ip
      * @param $type
      * @return bool
      */
-    public static function checkIpAccess($ip, $type):bool
+    public static function checkIpAccess($ip, $type): bool
     {
         $status = self::STATUS_ALLOW;
 
@@ -147,15 +161,15 @@ class UserLogin extends Model
     }
 
     /**
-     * Добавление опирации по IP адресу
+     * Добавление опирации по IP адресу.
      *
      * @param $ip
      * @param $type
      * @param $status
      * @param null $userId
-     * @return UserLogin
+     * @return UserLogin|null
      */
-    public static function addAction($ip, $type, $status, $userId = null):UserLogin
+    public static function addAction($ip, $type, $status, $userId = null): ? UserLogin
     {
         return self::create([
             'ip' => $ip,

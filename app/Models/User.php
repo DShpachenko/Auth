@@ -20,6 +20,8 @@ use Illuminate\Support\Facades\Hash;
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User query()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User create($value)
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User where($value, $val)
  * @mixin \Eloquent
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\User whereId($value)
@@ -101,7 +103,7 @@ class User extends Model
         } catch(\Exception $e) {
             \Log::error($e);
         } catch(\Throwable $t) {
-            \Log::error($t);
+            \Log::critical($t);
         }
 
         return null;
@@ -135,7 +137,7 @@ class User extends Model
         } catch (\Exception $e) {
             \Log::error($e);
         } catch (\Throwable $t) {
-            \Log::error($t);
+            \Log::critical($t);
         }
 
         return false;
@@ -157,7 +159,7 @@ class User extends Model
         } catch (\Exception $e) {
             \Log::error($e);
         } catch (\Throwable $t) {
-            \Log::error($t);
+            \Log::critical($t);
         }
 
         return false;

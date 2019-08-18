@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Jenssegers\Mongodb\Eloquent\Model;
+use Laravel\Lumen\Application;
 
 /**
  * Class LoginWhiteList.
@@ -18,6 +19,7 @@ use Jenssegers\Mongodb\Eloquent\Model;
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\LoginWhiteList newModelQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\LoginWhiteList newQuery()
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\LoginWhiteList query()
+ * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\LoginWhiteList create($value)
  * @mixin \Eloquent
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\LoginWhiteList whereCreatedAt($value)
  * @method static \Illuminate\Database\Eloquent\Builder|\App\Models\LoginWhiteList whereId($value)
@@ -91,5 +93,23 @@ class LoginWhiteList extends Model
         }
 
         return null;
+    }
+
+    /**
+     * Проверка токена в белом списке.
+     *
+     * @param $tokenId
+     * @param $userId
+     * @param $ip
+     * @return LoginWhiteList|null
+     */
+    public static function check($tokenId, $userId, $ip): ? LoginWhiteList
+    {
+        return self::where('user_id', $userId)
+                   ->where('status', self::STATUS_SUCCESS)
+                   ->where('token_id', $tokenId)
+                   ->where('ip', $ip)
+                   ->orderBy('id', 'desc')
+                   ->first();
     }
 }
