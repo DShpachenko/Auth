@@ -59,13 +59,13 @@ $app->singleton(
 |
 */
 
-// $app->middleware([
-//     App\Http\Middleware\ExampleMiddleware::class
-// ]);
+$app->middleware([
+    App\Http\Middleware\Lang::class,
+]);
 
-// $app->routeMiddleware([
-//     'auth' => App\Http\Middleware\Authenticate::class,
-// ]);
+$app->routeMiddleware([
+    'lang' => App\Http\Middleware\Lang::class,
+]);
 
 /*
 |--------------------------------------------------------------------------
@@ -97,7 +97,9 @@ if (env('APP_ENV') !== 'production') {
 |
 */
 
+$app->configure('app');
 $app->configure('database');
+$app->configure('logging');
 
 $app->router->group([
     'namespace' => 'App\Http\Controllers',

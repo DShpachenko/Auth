@@ -16,7 +16,7 @@ $router->get('/', function () use ($router) {
     return $router->app->version();
 });
 
-$router->group(['namespace' => 'Api', 'prefix' => 'api'], function ($router) {
+$router->group(['namespace' => 'Api', 'prefix' => 'api', 'middleware' => 'lang'], function ($router) {
     /** @var \Laravel\Lumen\Routing\Router $router */
 
     $router->post('registration',                 'RegisterController@registration');
