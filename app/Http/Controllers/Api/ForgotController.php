@@ -22,7 +22,7 @@ class ForgotController extends Controller
      * @param Request $request
      * @return string
      */
-    public function forgot(Request $request):string
+    public function forgot(Request $request): string
     {
         try {
             $validator = new ForgotRequest();
@@ -53,7 +53,7 @@ class ForgotController extends Controller
      * @param Request $request
      * @return string
      */
-    public function confirmation(Request $request):string
+    public function confirmation(Request $request): string
     {
         try {
             $validator = new ConfirmationForgotRequest();
@@ -91,7 +91,7 @@ class ForgotController extends Controller
      * @param Request $request
      * @return string
      */
-    public function resendingSms(Request $request):string
+    public function resendingSms(Request $request): string
     {
         try {
             $validator = new ResendSmsForgotRequest();
@@ -102,7 +102,8 @@ class ForgotController extends Controller
 
             /** @var User $user */
             $user = $validator->getUser();
-            $code = SmsCode::addCode($user->id);
+            /** @var SmsCode $code */
+            $code = SmsCode::addCode($user->id, SmsCode::TYPE_PASSWORD_RECOVERY_RESEND);
 
             /** @todo Добавить отправку SMS сообщения при успешной регистрации пользователя через RabbitMq */
 

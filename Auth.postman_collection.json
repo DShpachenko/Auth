@@ -1,0 +1,278 @@
+{
+	"id": "95a7c093-7982-8327-715f-a68d496dc413",
+	"name": "Auth",
+	"description": "",
+	"order": [
+		"fee37228-f04b-7b22-640d-d5e324af4606",
+		"9304d171-097d-35d1-b698-52e5679f5496",
+		"0bd0f2ee-7f2a-3842-1d37-5eafe9bd7377",
+		"104dc719-1e50-1d28-9b5b-e0d411c7005f",
+		"38880076-df82-afa1-2a2b-91d785744248",
+		"0dcb0777-1603-a197-d1d9-fd7a65db7966",
+		"46fd8473-7cb3-8487-d360-e8faec6860e1",
+		"2d221328-23bb-406a-da99-0aa25f6aaa33"
+	],
+	"folders": [],
+	"folders_order": [],
+	"timestamp": 1566153737279,
+	"owner": 0,
+	"public": false,
+	"requests": [
+		{
+			"id": "0bd0f2ee-7f2a-3842-1d37-5eafe9bd7377",
+			"headers": "Content-Type: application/json\n",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "http://auth.local/api/registration/confirm",
+			"queryParams": [],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "POST",
+			"collectionId": "95a7c093-7982-8327-715f-a68d496dc413",
+			"data": [],
+			"dataMode": "raw",
+			"name": "Подтверждение регистрации",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1566153869081,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"rawModeData": "{\n\t\"phone\": \"+7 (919) 874-81-90\",\n\t\"code\": 4970\n}"
+		},
+		{
+			"id": "0dcb0777-1603-a197-d1d9-fd7a65db7966",
+			"headers": "Content-Type: application/json\n",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "http://auth.local/api/forgot",
+			"queryParams": [],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "POST",
+			"collectionId": "95a7c093-7982-8327-715f-a68d496dc413",
+			"data": [],
+			"dataMode": "raw",
+			"name": "Запрос восстановления пароля",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1566153911690,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"rawModeData": "{\n\t\"phone\": \"+7 (919) 874-81-90\"\n}"
+		},
+		{
+			"id": "104dc719-1e50-1d28-9b5b-e0d411c7005f",
+			"headers": "Content-Type: application/json\n",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "http://auth.local/api/login",
+			"queryParams": [],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "POST",
+			"collectionId": "95a7c093-7982-8327-715f-a68d496dc413",
+			"data": [],
+			"dataMode": "raw",
+			"name": "Авторизация",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1566153880394,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"rawModeData": "{\n\t\"phone\": \"+7 (919) 874-81-90\",\n\t\"password\": \"123456\"\n}"
+		},
+		{
+			"id": "2d221328-23bb-406a-da99-0aa25f6aaa33",
+			"headers": "Content-Type: application/json\n",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "http://auth.local/api/forgot/confirm",
+			"queryParams": [],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "POST",
+			"collectionId": "95a7c093-7982-8327-715f-a68d496dc413",
+			"data": [],
+			"dataMode": "raw",
+			"name": "Подтверждение регистрации",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1566153952482,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"rawModeData": "{\n\t\"phone\": \"+7 919 8748190\",\n\t\"password\": \"123456\",\n\t\"code\": \"8868\"\n}"
+		},
+		{
+			"id": "38880076-df82-afa1-2a2b-91d785744248",
+			"headers": "Content-Type: application/json\n",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "http://auth.local/api/token/update",
+			"queryParams": [
+				{
+					"key": "token",
+					"value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbiI6IjVkNTk0ZWUzZWE0ZWM3MDAwNzNhNTI1MiJ9.itSUdO0Mbt4aAe6R2H70mv1xFi-ubafsrFxte63Vy2k",
+					"equals": true,
+					"description": "",
+					"enabled": false
+				}
+			],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "POST",
+			"collectionId": "95a7c093-7982-8327-715f-a68d496dc413",
+			"data": [],
+			"dataMode": "raw",
+			"name": "Обновление Токена",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1566153894537,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"rawModeData": "{\n\t\"token\": \"eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbiI6IjVkNTk2NmJkZWQzMTk5MDAwNjNiYjVkMiJ9.rGSILs9oRWE-qZoAvK7bhW-Z35nKeZ9s_fnlRFk_gdM\"\n}"
+		},
+		{
+			"id": "46fd8473-7cb3-8487-d360-e8faec6860e1",
+			"headers": "Content-Type: application/json\n",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "http://auth.local/api/forgot/resending-sms",
+			"queryParams": [],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "POST",
+			"collectionId": "95a7c093-7982-8327-715f-a68d496dc413",
+			"data": [],
+			"dataMode": "raw",
+			"name": "Повторная отправка смс сообщения при восстановлении пароля",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1566153934687,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"rawModeData": "{\n\t\"phone\": \"+7 919 874 81-90\"\n}"
+		},
+		{
+			"id": "9304d171-097d-35d1-b698-52e5679f5496",
+			"headers": "Content-Type: application/json\n",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "http://auth.local/api/registration/resending-sms",
+			"queryParams": [],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "POST",
+			"collectionId": "95a7c093-7982-8327-715f-a68d496dc413",
+			"data": [],
+			"dataMode": "raw",
+			"name": "Повторная отправка СМС сообщения для регистрации",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1566153854713,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"rawModeData": "{\n\t\"phone\": \"+7 (919) 874-81-90\"\n}"
+		},
+		{
+			"id": "fee37228-f04b-7b22-640d-d5e324af4606",
+			"headers": "Content-Type: application/json\n",
+			"headerData": [
+				{
+					"key": "Content-Type",
+					"value": "application/json",
+					"description": "",
+					"enabled": true
+				}
+			],
+			"url": "http://auth.local/api/registration",
+			"queryParams": [],
+			"pathVariables": {},
+			"pathVariableData": [],
+			"preRequestScript": null,
+			"method": "POST",
+			"collectionId": "95a7c093-7982-8327-715f-a68d496dc413",
+			"data": [],
+			"dataMode": "raw",
+			"name": "Регистрация",
+			"description": "",
+			"descriptionFormat": "html",
+			"time": 1566153832041,
+			"version": 2,
+			"responses": [],
+			"tests": null,
+			"currentHelper": "normal",
+			"helperAttributes": {},
+			"rawModeData": "{\n\t\"name\": \"name\",\n\t\"phone\": \"+7 (919) 874-81-90\",\n\t\"password\": \"123456\"\n}"
+		}
+	]
+}

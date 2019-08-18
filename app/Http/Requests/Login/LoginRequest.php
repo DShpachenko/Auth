@@ -43,7 +43,7 @@ class LoginRequest extends Validation
         $this->validateForm($data);
 
         /** @todo убрать это условие после интеграции api с клиентов */
-        if (env('APP_ENV') !== 'production') {
+        if (env('APP_ENV') === 'production') {
             $this->validateIp($request->ip(), UserLogin::TYPE_LOGIN);
         }
 

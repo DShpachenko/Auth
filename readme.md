@@ -1,21 +1,330 @@
-# Lumen PHP Framework
+# Auth
+    
 
-[![Build Status](https://travis-ci.org/laravel/lumen-framework.svg)](https://travis-ci.org/laravel/lumen-framework)
-[![Total Downloads](https://poser.pugx.org/laravel/lumen-framework/d/total.svg)](https://packagist.org/packages/laravel/lumen-framework)
-[![Latest Stable Version](https://poser.pugx.org/laravel/lumen-framework/v/stable.svg)](https://packagist.org/packages/laravel/lumen-framework)
-[![Latest Unstable Version](https://poser.pugx.org/laravel/lumen-framework/v/unstable.svg)](https://packagist.org/packages/laravel/lumen-framework)
-[![License](https://poser.pugx.org/laravel/lumen-framework/license.svg)](https://packagist.org/packages/laravel/lumen-framework)
+Данный микросервис необходим для обработки всех запросов связанных с авторизацией/регистрацией пользователя. Он должен 
+выполнять следующий список задач:
 
-Laravel Lumen is a stunningly fast PHP micro-framework for building web applications with expressive, elegant syntax. We believe development must be an enjoyable, creative experience to be truly fulfilling. Lumen attempts to take the pain out of development by easing common tasks used in the majority of web projects, such as routing, database abstraction, queueing, and caching.
 
-## Official Documentation
+## Основные требования (реализация может частично отличаться)
+1. Регистрация
+    1. Метод получения регистрационных данных пользователя. Он должен включать в себя следующий функционал:
+        1. Валидация полученных данных (name, phone, password)
+        2. Проверка на уникальность телефонного номера и логина
+        3. Ответ сервера:
+            1. Успешный <br>
+            В случае прохождения валидации данных и проверки на уникальность - добавление в БД новой записи,
+            со статусом "нового, не подтвержденного пользователя". Отправляется sms сообщение с кодом подтверждения
+            аккаунта нового пользователя. Код ответа сервиса - `200 OK`
+            2. Ошибочный <br>
+            Если на каком либо из этапов проверки или сохранения не были выполненны условия.
+            Кода ответа сервиса - `400 Bad Request`, в теле ответа указать массив с ошибками.
+            
+    2. Метод повторной отправки sms сообщения. Он должен включать в себя следующий функционал:
+        1. Валидация полученных данных (phone)
+        2. Проверка на наличие пользователя со статусом "не подтвержденный новый пользователь" и указанным телефонным
+        номером.
+        3. Ответ сервера:
+            1. Успешный <br>
+            В случае прохождения валидации и наличия подходящего пользователя - повторная отправка sms сообщения
+            с кодом подтверждения. Кот ответа сервера - `200 OK`
+            2. Ошибочный <br>
+            Если на каком либо из этапов валидации или отсутствия необходимого пользователя в БД - слать код 
+            ответа сервера `400 Bad Request`, в теле ответа указать массив с ошибками.
+            
+    3. Метод подтверждение регистрации. Он должен включать в себя следующий функционал:
+        1. Валидация полученных данных (phone, code)
+        2. Проверка на наличие пользователя со статусом "не подтвержденный новый пользователь" и указанным телефонным
+        номером в связке с кодом из смс.
+        3. Ответ сервера:
+            1. Успешный <br>
+            В случае прохождения валидации и проверки кода - обновление статуса пользователя на 
+            "подтвержденный". Кот ответа сервера - `200 OK`
+            2. Ошибочный <br>
+            Если на каком либо из этапов валидации или отсутствия указанной связки в БД - слать код ответа сервера
+            `400 Bad Request`, в теле ответа указать массив с ошибками.
+    
+2. Авторизация
+    1. Метод авторизации пользователя и получения токенов доступа (access_token и refresh_token)
+        1. Валидация полученных данных (phone, password)
+        2. Поиск подходящего пользователя (по валидированным данным и с необходимым статусом)
+        3. Ответ сервера:
+            1. Успешный <br>
+            В случае обнаружения подходящего пользователя:
+                1. Генерируем access_token для доступа функционала через API. Время действия токена - 5 минут.
+                2. Генерируем refresh_token для обновления access_token без необходимости отправки данных 
+                для авторизации (phone, password). Время жизни - 10 минут.
+                3. Запоминаем IP адрес авторизованного устройства в "былей" список в связке с access_token. <br>
+            Код ответа сервера - `200 OK`, в теле ответа передаем access_token и refresh_token.
+            2. Ошибочный <br>
+            Если на каком либо из этапов валидации или отсутствия указанной связки в БД - слать код ответа сервера
+            `400 Bad Request`, в теле ответа указать массив с ошибками.
+            
+    2. Метод обновления / замены access_token
+        1. Валидация полученных данных (access_token)
+        2. Поиск подходящей связки access_token и IP устройства из "белого" списка со "свежестью" токена не более 10
+        минут. 
+        3. Ответ сервера:
+            1. Успешный <br>
+            В случае обнаружения подходящей пары и пользователя:
+                1. Генерируем новый refresh_token и добавляем его вместе с IP адресом пользователя в "белый список".
+                2. Генерируем новый access_token для нового refresh_token. <br>
+            Код ответа сервера - `200 OK`, в теле ответа передаем новые access_token и refresh_token.
+            2. Ошибочный <br>
+            Если на каком либо из этапов валидации или отсутствия указанной связки в БД - слать код ответа сервера
+            `400 Bad Request`, в теле ответа указать массив с ошибками, IP адрес источника вычеркнуть из "белого"
+            списка при наличии.
+            
+3. Восстановление пароля
+    1. Метод запроса сброса старого пароля и его замены на новый
+        1. Валидация полученных данных (phone)
+        2. Поиск подходящего пользователя по указанному телефонному номеру, который не является "новым не 
+        подтвержденным пользователем".
+        3. Ответ сервера:
+            1. Успешный <br>
+            В случае прохождения валидации и наличия подходящего пользователя со статусом "подтвержденного пользователя"
+             - отправка sms сообщения
+            с кодом подтверждения. Кот ответа сервера - `200 OK`
+            2. Ошибочный <br>
+            Если на каком либо из этапов валидации или отсутствия необходимого пользователя в БД - слать код 
+            ответа сервера `400 Bad Request`, в теле ответа указать массив с ошибками.
+            
+    2. Метод повторной отправки sms сообщения. Он должен включать в себя следующий функционал:
+        1. Валидация полученных данных (phone)
+        2. Проверка на наличие пользователя со статусом "подтвержденный" и указанным телефонным
+        номером.
+        3. Ответ сервера:
+            1. Успешный <br>
+            В случае прохождения валидации и наличия подходящего пользователя - повторная отправка sms сообщения
+            с кодом подтверждения. Кот ответа сервера - `200 OK`
+            2. Ошибочный <br>
+            Если на каком либо из этапов валидации или отсутствия необходимого пользователя в БД - слать код 
+            ответа сервера `400 Bad Request`, в теле ответа указать массив с ошибками.
+                
+    3. Метод подтверждения смены пароля. Он должен включать в себя следующий функционал:
+        1. Валидация полученных данных (phone, password, code)
+        2. Проверка на наличие пользователя по указанному номеру со статусом "подтвержденный" и проверяем наличие
+        отправленного кода смс сообщением с типом "восстановление пароля" за последние 5 минут.
+        3. Ответ сервера:
+            1. Успешный <br>
+            В случае прохождения валидации и наличия подходящего пользователя - заменяем пароль на новый. Код ответа
+            сервера - `200 OK`
+            2. Ошибочный <br>
+            Если на каком либо из этапов валидации или отсутствия необходимого пользователя в БД - слать код 
+            ответа сервера `400 Bad Request`, в теле ответа указать массив с ошибками.
+                    
+> **Внимание**, в зависимости от окружения сервера (`develop` или `production`) - проверки по времени на частоту
+регистраций / авторизаций / запросов смены пароля / повторной отправки sms сообщения - будут отключены! 
 
-Documentation for the framework can be found on the [Lumen website](https://lumen.laravel.com/docs).
+Данный микросервис реализован на основе фреймворка Lumen 5.8.* (ускоренная / урезанная версия Laravel).                    
 
-## Security Vulnerabilities
+# API
 
-If you discover a security vulnerability within Lumen, please send an e-mail to Taylor Otwell at taylor@laravel.com. All security vulnerabilities will be promptly addressed.
+###Регистрация
+POST - ```http://auth.local/api/registration```
+<br>
+<pre>
+Запрос:
 
-## License
+{
+    "name": "name",
+    "phone": "+7 (919) 874-81-90",
+    "password": "123456"
+}
+</pre>
+<pre>
+Ответ:
 
-The Lumen framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+{
+    "data": {
+        "status": "REGISTRATION_SUCCESS",
+        "code": 4970
+    },
+    "errors": {
+        "form": null,
+        "any": null
+    }
+}
+</pre>
+
+###Повторная отправка sms сообщения при регистрации
+POST - ```http://auth.local/api/registration/resending-sms```
+<br>
+<pre>
+Запрос:
+
+{
+    "phone": "+7 (919) 874-81-90"
+}
+</pre>
+<pre>
+Ответ:
+
+{
+    "data": {
+        "status": "REGISTRATION_RESEND_SMS_SUCCESS",
+        "code": 6166
+    },
+    "errors": {
+        "form": null,
+        "any": null
+    }
+}
+</pre>
+
+###Подтверждение регистрации
+POST - ```http://auth.local/api/registration/confirm```
+<br>
+<pre>
+Запрос:
+
+{
+    "phone": "+7 (919) 874-81-90",
+    "code": 4970
+}
+</pre>
+<pre>
+Ответ:
+
+{
+    "data": {
+        "status": "REGISTRATION_CONFIRMATION_SUCCESS"
+    },
+    "errors": {
+        "form": null,
+        "any": null
+    }
+}
+</pre>
+
+###Авторизация
+POST - ```http://auth.local/api/login```
+<br>
+<pre>
+Запрос:
+
+{
+	"phone": "+7 (919) 874-81-90",
+	"password": "123456"
+}
+</pre>
+<pre>
+Ответ:
+
+{
+    "data": {
+        "status": "LOGIN_SUCCESS",
+        "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbiI6IjVkNTk2NmE3ZWQzMTk5MDAwNzM0ODE3MiJ9.UngeyQbzZW6uNT-r9RtjNfdBc_WKD8fc9asej2-wegQ",
+        "token_created_time": 1566140071,
+        "access_time": 300,
+        "refresh_time": 600
+    },
+    "errors": {
+        "form": null,
+        "any": null
+    }
+}
+</pre>
+
+###Обновление токена
+POST - ```http://auth.local/api/token/update```
+<br>
+<pre>
+Запрос:
+
+{
+    "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbiI6IjVkNTk2NmJkZWQzMTk5MDAwNjNiYjVkMiJ9.rGSILs9oRWE-qZoAvK7bhW-Z35nKeZ9s_fnlRFk_gdM"
+}
+</pre>
+<pre>
+Ответ:
+
+{
+    "data": {
+        "status": "REFRESH_TOKEN_SUCCESS",
+        "token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJ0b2tlbiI6IjVkNTk2NmZlZWQzMTk5MDAwNzM0ODE3NCJ9.JDOLVITgJojfMH6pEUBpt1LBr6Y881P8FVGj9S5pkVI",
+        "token_created_time": 1566140158,
+        "access_time": 300,
+        "refresh_time": 600
+    },
+    "errors": {
+        "form": null,
+        "any": null
+    }
+}
+</pre>
+
+###Запрос восстановления пароля
+POST - ```http://auth.local/api/forgot```
+<br>
+<pre>
+Запрос:
+
+{
+    "phone": "+7 (919) 874-81-90"
+}
+</pre>
+<pre>
+Ответ:
+
+{
+    "data": {
+        "status": "FORGOT_SEND_SMS_SUCCESS",
+        "code": 1239
+    },
+    "errors": {
+        "form": null,
+        "any": null
+    }
+}
+</pre>
+
+###Повторная отправка sms сообщения при восстановлении пароля
+POST - ```http://auth.local/api/forgot/resending-sms```
+<br>
+<pre>
+Запрос:
+
+{
+    "phone": "+7 (919) 874-81-90"
+}
+</pre>
+<pre>
+Ответ:
+
+{
+    "data": {
+        "status": "FORGOT_RESEND_SMS_SUCCESS",
+        "code": 8868
+    },
+    "errors": {
+        "form": null,
+        "any": null
+    }
+}
+</pre>
+
+###Подтверждение восстановления пароля
+POST - ```http://auth.local/api/forgot/confirm```
+<br>
+<pre>
+Запрос:
+
+{
+    "phone": "+7 919 8748190",
+    "password": "123456",
+    "code": "8868"
+}
+</pre>
+<pre>
+Ответ:
+
+{
+    "data": {
+        "status": "FORGOT_CONFIRMATION_SUCCESS"
+    },
+    "errors": {
+        "form": null,
+        "any": null
+    }
+}
+</pre>
