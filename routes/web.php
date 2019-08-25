@@ -27,7 +27,7 @@ $router->group(['namespace' => 'Api', 'prefix' => 'api', 'middleware' => 'lang']
 
     $router->post('login',                        'LoginController@login');
 
-    $router->post('forgot',                       'ForgotController@forgot');
+    $router->post('restore',                       'ForgotController@forgot');
 
     $router->post('forgot/confirm',               'ForgotController@confirmation');
 
