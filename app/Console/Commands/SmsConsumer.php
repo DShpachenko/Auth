@@ -32,8 +32,9 @@ class SmsConsumer extends Command
     {
         $rabbit = new RabbitMQ();
 
-        $callBack = static function ($message) {
-            echo $message->body.PHP_EOL;
+        $callBack = static function ($msg) {
+            echo ' [x] Received ', $msg->body, "\n";
+            //sleep(substr_count($msg->body, '.'));
         };
 
         $rabbit->run($callBack, self::CHANNEL);

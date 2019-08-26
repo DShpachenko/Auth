@@ -4,8 +4,8 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\ {User, UserTokens};
-use App\Models\ {SmsCode};
+use App\Jobs\Sms;
+use App\Models\ {User, UserTokens, SmsCode};
 use App\Http\Requests\Forgot\{ForgotRequest, ConfirmationForgotRequest, ResendSmsForgotRequest};
 
 /**
@@ -35,7 +35,7 @@ class ForgotController extends Controller
             $user = $validator->getUser();
             $code = SmsCode::addCode($user->id, SmsCode::TYPE_PASSWORD_RECOVERY);
 
-            /** @todo Добавить отправку SMS сообщения при успешной регистрации пользователя через RabbitMq */
+            (new Sms())->make(['phone' => $user->phone, 'text' => $code->code]);
 
             return $this->response(['status' => self::FORGOT_SEND_SMS_SUCCESS, 'code' => $code->code]);
         } catch (\Exception $e) {
@@ -105,7 +105,7 @@ class ForgotController extends Controller
             /** @var SmsCode $code */
             $code = SmsCode::addCode($user->id, SmsCode::TYPE_PASSWORD_RECOVERY_RESEND);
 
-            /** @todo Добавить отправку SMS сообщения при успешной регистрации пользователя через RabbitMq */
+            (new Sms())->make(['phone' => $user->phone, 'text' => $code->code]);
 
             return $this->response(['status' => self::FORGOT_RESEND_SMS_SUCCESS, 'code' => $code->code]);
         } catch (\Exception $e) {

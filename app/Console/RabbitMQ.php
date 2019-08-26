@@ -143,7 +143,7 @@ class RabbitMQ
                         $channel = $connection->channel();
                         $channel->basic_qos(null, $this->maxMessagesToHandle, null);
                         $channel->queue_declare($queue, false, false, false, false);
-                        $channel->basic_consume($queue, '', false, false, false, false, $callbackFunction);
+                        $channel->basic_consume($queue, '', false, true, false, false, $callbackFunction);
 
                         while ($channel->is_consuming()) {
                             $channel->wait();

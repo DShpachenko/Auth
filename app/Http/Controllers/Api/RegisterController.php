@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use App\Models\{User, SmsCode};
+use App\Jobs\{Sms, UserInfo};
 use App\Http\Requests\Registration\{RegistrationRequest, ConfirmationRequest, ResendSmsRequest};
 
 /**
@@ -38,7 +39,7 @@ class RegisterController extends Controller
             /** @var SmsCode $code */
             $code = SmsCode::addCode($user->id, SmsCode::TYPE_REGISTRATION);
 
-            /** @todo Добавить отправку SMS сообщения при успешной регистрации пользователя через RabbitMq*/
+            (new Sms())->make(['phone' => $user->phone, 'text' => $code->code]);
 
             return $this->response(['status' => self::REGISTRATION_SUCCESS, 'code' => $code->code]);
         } catch (\Exception $e) {
@@ -76,7 +77,7 @@ class RegisterController extends Controller
                 return $this->response(null, [__('response.error_critical')]);
             }
 
-            /** @todo Добавить обработку с rabbitMq на создание новой информации о пользователе */
+            (new UserInfo())->make($user->toArray());
 
             return $this->response(['status' => self::REGISTRATION_CONFIRMATION_SUCCESS]);
         } catch (\Exception $e) {
@@ -116,7 +117,7 @@ class RegisterController extends Controller
             /** @var SmsCode $code */
             $code = SmsCode::addCode($user->id, SmsCode::TYPE_REGISTRATION_RESEND);
 
-            /** @todo Добавить отправку SMS сообщения при успешной регистрации пользователя через RabbitMq */
+            (new Sms())->make(['phone' => $user->phone, 'text' => $code->code]);
 
             return $this->response(['status' => self::REGISTRATION_RESEND_SMS_SUCCESS, 'code' => $code->code]);
         } catch (\Exception $e) {
