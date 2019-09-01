@@ -110,9 +110,9 @@ class Job
 
             return true;
         } catch (\Exception $e) {
-            dd($e);
+            \Log::error($e);
         } catch (\Throwable $t) {
-            dd($t);
+            \Log::critical($t);
         }
 
         return false;
