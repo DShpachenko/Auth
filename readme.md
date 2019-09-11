@@ -258,7 +258,7 @@ POST - ```http://auth.local/api/token/update```
 </pre>
 
 ### Запрос восстановления пароля
-POST - ```http://auth.local/api/forgot```
+POST - ```http://auth.local/api/restore```
 <br>
 <pre>
 Запрос:
@@ -283,7 +283,7 @@ POST - ```http://auth.local/api/forgot```
 </pre>
 
 ### Повторная отправка sms сообщения при восстановлении пароля
-POST - ```http://auth.local/api/forgot/resending-sms```
+POST - ```http://auth.local/api/restore/resending-sms```
 <br>
 <pre>
 Запрос:
@@ -308,7 +308,7 @@ POST - ```http://auth.local/api/forgot/resending-sms```
 </pre>
 
 ### Подтверждение восстановления пароля
-POST - ```http://auth.local/api/forgot/confirm```
+POST - ```http://auth.local/api/restore/confirm```
 <br>
 <pre>
 Запрос:

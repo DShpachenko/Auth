@@ -29,9 +29,9 @@ $router->group(['namespace' => 'Api', 'prefix' => 'api', 'middleware' => 'lang']
 
     $router->post('restore',                       'ForgotController@forgot');
 
-    $router->post('forgot/confirm',               'ForgotController@confirmation');
+    $router->post('restore/confirm',               'ForgotController@confirmation');
 
-    $router->post('forgot/resending-sms',         'ForgotController@resendingSms');
+    $router->post('restore/resending-sms',         'ForgotController@resendingSms');
 
     $router->post('token/update',                 'TokenController@update');
 
